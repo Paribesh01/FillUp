@@ -1,10 +1,17 @@
 @import "tailwindcss";
+@import "../styles/_variables.scss";
+@import "../styles/_keyframe-animations.scss";
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
 
+.no-border {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -17,6 +24,54 @@
     --background: #0a0a0a;
     --foreground: #ededed;
   }
+}
+.ProseMirror {
+  padding-inline: 4rem;
+
+  > * + * {
+    margin-top: 0.75em;
+  }
+
+  [data-id] {
+    border: 3px solid #0d0d0d;
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+    position: relative;
+    margin-top: 1.5rem;
+    padding: 2rem 1rem 1rem;
+
+    &::before {
+      content: attr(data-id);
+      background-color: #0d0d0d;
+      font-size: 0.6rem;
+      letter-spacing: 1px;
+      font-weight: bold;
+      text-transform: uppercase;
+      color: #fff;
+      position: absolute;
+      top: 0;
+      padding: 0.25rem 0.75rem;
+      border-radius: 0 0 0.5rem 0.5rem;
+    }
+  }
+}
+
+/* Show a visible :: drag handle on the left of each draggable block */
+.drag-handle {
+  cursor: grab;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  margin-right: 8px;
+  color: #aaa;
+  font-size: 1.2em;
+  padding: 0 4px;
+}
+
+.drag-handle::before {
+  content: "::";
+  font-weight: bold;
+  letter-spacing: 2px;
 }
 
 body {
