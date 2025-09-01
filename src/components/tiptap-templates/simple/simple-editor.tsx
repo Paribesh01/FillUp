@@ -111,18 +111,15 @@ export function SimpleEditor({
     ],
   });
 
-  // Save on every change
-  React.useEffect(() => {
+  // Add this save handler function inside your component
+  const handleSave = React.useCallback(async () => {
     if (!editor) return;
-    const saveContent = async () => {
-      const json = editor.getJSON();
-      // Debounce or throttle if needed
-      await updateFormContent(docId, json);
-    };
-    editor.on("update", saveContent);
-    return () => {
-      editor.off("update", saveContent);
-    };
+    const json = editor.getJSON();
+    await fetch("/api/save-form-content", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ docId, content: json }),
+    });
   }, [editor, docId]);
 
   React.useEffect(() => {
@@ -140,6 +137,10 @@ export function SimpleEditor({
           className="simple-editor-content"
         />
         <SlashMenu editor={editor} />
+        {/* Add the Save button here */}
+        <button type="button" onClick={handleSave} style={{ marginTop: 16 }}>
+          Save
+        </button>
       </EditorContext.Provider>
     </div>
   );
