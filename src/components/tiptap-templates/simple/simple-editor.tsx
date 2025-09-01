@@ -39,7 +39,6 @@ import { handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils";
 // --- Styles ---
 import "@/components/tiptap-templates/simple/simple-editor.scss";
 
-import content from "@/components/tiptap-templates/simple/data/content.json";
 import { QuestionNode } from "@/components/custom/question-node/question-node-extension";
 import QuestionNodeComponent from "@/components/custom/question-node/question-node";
 import { ReactNodeViewRenderer } from "@tiptap/react";
