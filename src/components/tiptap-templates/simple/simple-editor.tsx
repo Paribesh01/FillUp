@@ -42,8 +42,15 @@ import "@/components/tiptap-templates/simple/simple-editor.scss";
 import { QuestionNode } from "@/components/custom/question-node/question-node-extension";
 import QuestionNodeComponent from "@/components/custom/question-node/question-node";
 import { ReactNodeViewRenderer } from "@tiptap/react";
+import { updateFormContent } from "@/app/actions/form"; // Import your server action
 
-export function SimpleEditor() {
+export function SimpleEditor({
+  docId,
+  initialContent,
+}: {
+  docId: string;
+  initialContent: any;
+}) {
   const isMobile = useIsMobile();
 
   const [mobileView, setMobileView] = React.useState<
@@ -53,6 +60,7 @@ export function SimpleEditor() {
   const editor = useEditor({
     immediatelyRender: false,
     shouldRerenderOnTransaction: false,
+    content: initialContent,
     editorProps: {
       attributes: {
         autocomplete: "off",
@@ -103,18 +111,19 @@ export function SimpleEditor() {
     ],
   });
 
+  // Save on every change
   React.useEffect(() => {
     if (!editor) return;
-    const logContent = () => {
-      console.log("Editor content:", editor.getJSON());
+    const saveContent = async () => {
+      const json = editor.getJSON();
+      // Debounce or throttle if needed
+      await updateFormContent(docId, json);
     };
-    editor.on("update", logContent);
-    // Log once on mount as well
-    logContent();
+    editor.on("update", saveContent);
     return () => {
-      editor.off("update", logContent);
+      editor.off("update", saveContent);
     };
-  }, [editor]);
+  }, [editor, docId]);
 
   React.useEffect(() => {
     if (!isMobile && mobileView !== "main") {
