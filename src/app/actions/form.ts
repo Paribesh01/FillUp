@@ -26,12 +26,41 @@ export async function createForm() {
     return doc;
 }
 
-export async function updateFormContent(id: string, content: any) {
+export async function updateFormContent(id: string, content: unknown) {
     const user = await currentUser();
     if (!user) throw new Error("Not authenticated");
     // Optionally: check if the document belongs to the user
     await prisma.document.update({
         where: { id, userId: user.id },
-        data: { content },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data: { content: content as any },
+    });
+}
+
+export async function updateFormTitle(id: string, title: string) {
+    const user = await currentUser();
+    if (!user) throw new Error("Not authenticated");
+    await prisma.document.update({
+        where: { id, userId: user.id },
+        data: { title },
+    });
+}
+
+export async function getUserSubmissions(documentId: string) {
+    const user = await currentUser();
+    if (!user) return [];
+    return await prisma.submission.findMany({
+        where: { userId: user.id, documentId: documentId },
+        include: { document: { select: { title: true } } },
+        orderBy: { createdAt: "desc" },
+    });
+}
+
+export async function getFormById(id: string) {
+    const user = await currentUser();
+    if (!user) throw new Error("Not authenticated");
+    return await prisma.document.findUnique({
+        where: { id, userId: user.id },
+        select: { title: true, content: true },
     });
 }

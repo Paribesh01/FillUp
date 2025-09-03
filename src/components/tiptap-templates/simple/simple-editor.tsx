@@ -42,7 +42,9 @@ import "@/components/tiptap-templates/simple/simple-editor.scss";
 import { QuestionNode } from "@/components/custom/question-node/question-node-extension";
 import QuestionNodeComponent from "@/components/custom/question-node/question-node";
 import { ReactNodeViewRenderer } from "@tiptap/react";
-import { updateFormContent } from "@/app/actions/form"; // Import your server action
+import { updateFormTitle } from "@/app/actions/form";
+import { TitleInput } from "@/components/ui/title-input";
+import { getFormById } from "@/app/actions/form";
 
 export function SimpleEditor({
   docId,
@@ -52,6 +54,20 @@ export function SimpleEditor({
   initialContent: any;
 }) {
   const isMobile = useIsMobile();
+  const [title, setTitle] = React.useState("");
+  const [saving, setSaving] = React.useState(false);
+  const [saved, setSaved] = React.useState(false);
+
+  // Fetch the title on mount
+  React.useEffect(() => {
+    async function fetchTitle() {
+      if (docId) {
+        const doc = await getFormById(docId);
+        if (doc?.title) setTitle(doc.title);
+      }
+    }
+    fetchTitle();
+  }, [docId]);
 
   const [mobileView, setMobileView] = React.useState<
     "main" | "highlighter" | "link"
@@ -114,13 +130,25 @@ export function SimpleEditor({
   // Add this save handler function inside your component
   const handleSave = React.useCallback(async () => {
     if (!editor) return;
+    setSaving(true);
+    setSaved(false);
     const json = editor.getJSON();
     await fetch("/api/save-form-content", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ docId, content: json }),
     });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1500); // "Saved!" disappears after 1.5s
   }, [editor, docId]);
+
+  const handleTitleBlur = async () => {
+    if (title.trim() && docId) {
+      await updateFormTitle(docId, title.trim());
+      // Optionally: show a toast or set a "saved" state
+    }
+  };
 
   React.useEffect(() => {
     if (!isMobile && mobileView !== "main") {
@@ -129,19 +157,47 @@ export function SimpleEditor({
   }, [isMobile, mobileView]);
 
   return (
-    <div className="simple-editor-wrapper">
-      <EditorContext.Provider value={{ editor }}>
-        <EditorContent
-          editor={editor}
-          role="presentation"
-          className="simple-editor-content"
-        />
-        <SlashMenu editor={editor} />
-        {/* Add the Save button here */}
-        <button type="button" onClick={handleSave} style={{ marginTop: 16 }}>
-          Save
-        </button>
-      </EditorContext.Provider>
-    </div>
+    <>
+      <div className="w-full flex justify-center mt-8 mb-4">
+        <div className="max-w-xl w-full flex items-center justify-between">
+          {/* Save button at the top, aligned right */}
+          <div />
+          <button
+            type="button"
+            onClick={handleSave}
+            style={{ marginLeft: "auto", marginBottom: 8 }}
+            disabled={saving}
+          >
+            {saving ? "Saving..." : "Save"}
+          </button>
+          {saved && (
+            <span style={{ marginLeft: 12, color: "green", fontWeight: 500 }}>
+              Saved!
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="w-full flex justify-center mb-4">
+        <div className="max-w-xl w-full">
+          <TitleInput
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            onBlur={handleTitleBlur}
+            placeholder="Title of the form"
+            aria-label="Form title"
+          />
+        </div>
+      </div>
+      <div className="simple-editor-wrapper">
+        <EditorContext.Provider value={{ editor }}>
+          <EditorContent
+            editor={editor}
+            role="presentation"
+            className="simple-editor-content"
+          />
+          <SlashMenu editor={editor} />
+        </EditorContext.Provider>
+      </div>
+    </>
   );
 }
