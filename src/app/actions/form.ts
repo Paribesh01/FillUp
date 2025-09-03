@@ -1,4 +1,3 @@
-
 "use server";
 
 import { currentUser } from "@clerk/nextjs/server";
@@ -62,5 +61,14 @@ export async function getFormById(id: string) {
     return await prisma.document.findUnique({
         where: { id, userId: user.id },
         select: { title: true, content: true },
+    });
+}
+
+export async function getAllSubmissionsForForm(documentId: string) {
+    // No user filter: get all submissions for this form
+    return await prisma.submission.findMany({
+        where: { documentId },
+        include: { document: { select: { title: true } } },
+        orderBy: { createdAt: "desc" },
     });
 }
