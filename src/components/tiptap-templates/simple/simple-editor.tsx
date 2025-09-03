@@ -45,6 +45,7 @@ import { ReactNodeViewRenderer } from "@tiptap/react";
 import { updateFormTitle } from "@/app/actions/form";
 import { TitleInput } from "@/components/ui/title-input";
 import { getFormById } from "@/app/actions/form";
+import MultipleChoiceQuestionNode from "@/components/custom/question-node/MultipleChoiceQuestionNode";
 
 export function SimpleEditor({
   docId,
@@ -113,7 +114,13 @@ export function SimpleEditor({
       }),
       QuestionNode.extend({
         addNodeView() {
-          return ReactNodeViewRenderer(QuestionNodeComponent);
+          return (props) => {
+            if (props.node.attrs.type === "multipleChoice") {
+              return ReactNodeViewRenderer(MultipleChoiceQuestionNode)(props);
+            }
+            // fallback to your default QuestionNodeComponent
+            return ReactNodeViewRenderer(QuestionNodeComponent)(props);
+          };
         },
       }),
       Placeholder.configure({

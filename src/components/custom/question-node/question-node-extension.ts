@@ -17,9 +17,10 @@ declare module '@tiptap/core' {
 export interface QuestionNodeAttrs {
     id: string;
     label: string;
-    type: 'short' | 'long';
+    type: 'short' | 'long' | 'multipleChoice'; // <-- add multipleChoice
     placeholder?: string;
     answer?: string;
+    options?: string[]; // <-- add options
 }
 
 export const QuestionNode = Node.create<QuestionNodeOptions>({
@@ -60,6 +61,16 @@ export const QuestionNode = Node.create<QuestionNodeOptions>({
                 default: '',
                 parseHTML: el => el.getAttribute('data-answer') || '',
                 renderHTML: attrs => ({ 'data-answer': attrs.answer }),
+            },
+            options: {
+                default: undefined,
+                parseHTML: el => {
+                    const data = el.getAttribute('data-options');
+                    return data ? JSON.parse(data) : undefined;
+                },
+                renderHTML: attrs => (
+                    attrs.options ? { 'data-options': JSON.stringify(attrs.options) } : {}
+                ),
             },
         };
     },

@@ -57,6 +57,27 @@ const SLASH_OPTIONS: {
       editor.chain().focus().insertQuestion({ type: "long" }).run(),
     match: ["long", "long answer", "long question", "textarea", "paragraph"],
   },
+  {
+    label: "Multiple Choice Question",
+    command: (editor: Editor) =>
+      editor
+        .chain()
+        .focus()
+        .insertQuestion({
+          type: "multipleChoice",
+          label: "Untitled multiple choice",
+          options: ["Option 1", "Option 2"],
+        })
+        .run(),
+    match: [
+      "multiple",
+      "multiple choice",
+      "mcq",
+      "choice",
+      "radio",
+      "checkbox",
+    ],
+  },
 ];
 
 export const SlashMenu: React.FC<SlashMenuProps> = ({ editor }) => {
