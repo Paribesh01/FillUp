@@ -18,7 +18,7 @@ import DragHandle from "@tiptap/extension-drag-handle";
 
 // --- Tiptap Node ---
 import { ImageUploadNode } from "@/components/tiptap-node/image-upload-node/image-upload-node-extension";
-import { HorizontalRule } from "@/components/tiptap-node/horizontal-rule-node/horizontal-rule-node-extension";
+import { NextPageNode } from "@/components/tiptap-node/horizontal-rule-node/horizontal-rule-node-extension";
 import "@/components/tiptap-node/blockquote-node/blockquote-node.scss";
 import "@/components/tiptap-node/code-block-node/code-block-node.scss";
 import "@/components/tiptap-node/horizontal-rule-node/horizontal-rule-node.scss";
@@ -52,7 +52,7 @@ export function SimpleEditor({
   initialContent,
 }: {
   docId: string;
-  initialContent: any;
+  initialContent: Record<string, any>;
 }) {
   const isMobile = useIsMobile();
   const [title, setTitle] = React.useState("");
@@ -95,7 +95,7 @@ export function SimpleEditor({
           enableClickSelection: true,
         },
       }),
-      HorizontalRule,
+      NextPageNode,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       TaskList,
       TaskItem.configure({ nested: true }),

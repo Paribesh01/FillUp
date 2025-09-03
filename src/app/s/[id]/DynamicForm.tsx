@@ -5,10 +5,11 @@ import CodeBlockDisplay from "./CodeBlockDisplay";
 
 type QuestionNodeAttrs = {
   id: string;
-  type: "short" | "long";
+  type: "short" | "long" | "multipleChoice";
   label: string;
   answer: string;
   placeholder: string;
+  options?: string[];
 };
 
 type Node =
@@ -19,25 +20,90 @@ type Node =
       content: { text: string }[];
     }
   | { type: "paragraph"; attrs: { textAlign: string | null } }
-  | { type: string; [key: string]: any };
+  | { type: string; [key: string]: unknown };
 
 export default function DynamicForm({
   docContent,
   documentId,
   title,
 }: {
-  docContent: any;
+  docContent: Record<string, unknown>;
   documentId: string;
   title: string;
 }) {
-  // Extract all question nodes for form state
-  const questions = (docContent.content || []).filter(
-    (node: Node) => node.type === "questionNode"
-  );
+  // Type guard for question nodes
+  function isQuestionNode(
+    node: unknown
+  ): node is { type: "questionNode"; attrs: QuestionNodeAttrs } {
+    return (
+      typeof node === "object" &&
+      node !== null &&
+      (node as { type?: unknown }).type === "questionNode" &&
+      typeof (node as { attrs?: unknown }).attrs === "object" &&
+      (node as { attrs?: unknown }).attrs !== null
+    );
+  }
+
+  // Type guard for code block nodes
+  function isCodeBlockNode(node: unknown): node is {
+    type: "codeBlock";
+    attrs: { language: string | null };
+    content: { text: string }[];
+  } {
+    return (
+      typeof node === "object" &&
+      node !== null &&
+      (node as { type?: unknown }).type === "codeBlock"
+    );
+  }
+
+  // Type guard for paragraph nodes
+  function isParagraphNode(
+    node: unknown
+  ): node is { type: "paragraph"; attrs: { textAlign: string | null } } {
+    return (
+      typeof node === "object" &&
+      node !== null &&
+      (node as { type?: unknown }).type === "paragraph"
+    );
+  }
+
+  // Type guard for nextPage nodes
+  function isNextPageNode(node: unknown): node is { type: "nextPage" } {
+    return (
+      typeof node === "object" &&
+      node !== null &&
+      (node as { type?: unknown }).type === "nextPage"
+    );
+  }
+
+  const contentArray = Array.isArray(docContent.content)
+    ? docContent.content
+    : [];
+  const questions = contentArray.filter(isQuestionNode);
   const [form, setForm] = useState<{ [id: string]: string }>(
-    Object.fromEntries(questions.map((q: any) => [q.attrs.id, ""]))
+    Object.fromEntries(questions.map((q) => [q.attrs.id, ""]))
   );
   const [submitting, setSubmitting] = useState(false);
+
+  // --- Pagination logic ---
+  // Split content into pages by nextPage nodes
+  const pages: unknown[][] = [];
+  let currentPage: unknown[] = [];
+  contentArray.forEach((node) => {
+    if (isNextPageNode(node)) {
+      pages.push(currentPage);
+      currentPage = [];
+    } else {
+      currentPage.push(node);
+    }
+  });
+  if (currentPage.length > 0 || pages.length === 0) {
+    pages.push(currentPage);
+  }
+  const [pageIdx, setPageIdx] = useState(0);
+  const isFirstPage = pageIdx === 0;
+  const isLastPage = pageIdx === pages.length - 1;
 
   const handleChange = (id: string, value: string) => {
     setForm((prev) => ({ ...prev, [id]: value }));
@@ -86,8 +152,8 @@ export default function DynamicForm({
         >
           {title}
         </h2>
-        {(docContent.content || []).map((node: Node, idx: number) => {
-          if (node.type === "questionNode") {
+        {pages[pageIdx].map((node, idx) => {
+          if (isQuestionNode(node)) {
             return (
               <QuestionFormField
                 key={node.attrs.id}
@@ -97,30 +163,79 @@ export default function DynamicForm({
               />
             );
           }
-          if (node.type === "codeBlock") {
+          if (isCodeBlockNode(node)) {
             return <CodeBlockDisplay key={idx} node={node} />;
           }
           // Optionally handle paragraphs, etc.
           return null;
         })}
-        <button
-          type="submit"
-          disabled={submitting}
+        <div
           style={{
+            display: "flex",
+            justifyContent: "space-between",
             marginTop: 24,
-            width: "100%",
-            padding: "12px 0",
-            borderRadius: 6,
-            background: "#222",
-            color: "#fff",
-            fontWeight: 600,
-            fontSize: 16,
-            border: "none",
-            cursor: "pointer",
           }}
         >
-          {submitting ? "Submitting..." : "Submit"}
-        </button>
+          {!isFirstPage && (
+            <button
+              type="button"
+              onClick={() => setPageIdx((idx) => Math.max(0, idx - 1))}
+              style={{
+                padding: "10px 18px",
+                borderRadius: 6,
+                background: "#eee",
+                color: "#333",
+                fontWeight: 500,
+                fontSize: 16,
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              Previous
+            </button>
+          )}
+          {!isLastPage && (
+            <button
+              type="button"
+              onClick={() =>
+                setPageIdx((idx) => Math.min(pages.length - 1, idx + 1))
+              }
+              style={{
+                marginLeft: isFirstPage ? 0 : 12,
+                padding: "10px 18px",
+                borderRadius: 6,
+                background: "#222",
+                color: "#fff",
+                fontWeight: 600,
+                fontSize: 16,
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              Next
+            </button>
+          )}
+          {isLastPage && (
+            <button
+              type="submit"
+              disabled={submitting}
+              style={{
+                marginLeft: isFirstPage ? 0 : 12,
+                width: "100%",
+                padding: "12px 0",
+                borderRadius: 6,
+                background: "#222",
+                color: "#fff",
+                fontWeight: 600,
+                fontSize: 16,
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              {submitting ? "Submitting..." : "Submit"}
+            </button>
+          )}
+        </div>
       </form>
     </div>
   );

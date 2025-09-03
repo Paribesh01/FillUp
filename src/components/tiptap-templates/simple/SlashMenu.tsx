@@ -78,6 +78,12 @@ const SLASH_OPTIONS: {
       "checkbox",
     ],
   },
+  {
+    label: "Next Page Indicator",
+    command: (editor: Editor) =>
+      editor.chain().focus().insertContent({ type: "nextPage" }).run(),
+    match: ["next", "page", "break", "next page"],
+  },
 ];
 
 export const SlashMenu: React.FC<SlashMenuProps> = ({ editor }) => {
