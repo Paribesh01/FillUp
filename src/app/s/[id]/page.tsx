@@ -29,5 +29,11 @@ export default async function SubmitFormPage({
     );
   }
 
-  return <DynamicForm docContent={doc.content} documentId={doc.id} />;
+  return (
+    <DynamicForm
+      docContent={doc.content}
+      documentId={doc.id}
+      title={doc.title}
+    />
+  );
 }

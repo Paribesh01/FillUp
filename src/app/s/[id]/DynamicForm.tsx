@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import QuestionFormField from "./QuestionFormField";
+import CodeBlockDisplay from "./CodeBlockDisplay";
 
 type QuestionNodeAttrs = {
   id: string;
@@ -22,9 +24,11 @@ type Node =
 export default function DynamicForm({
   docContent,
   documentId,
+  title,
 }: {
   docContent: any;
   documentId: string;
+  title: string;
 }) {
   // Extract all question nodes for form state
   const questions = (docContent.content || []).filter(
@@ -51,55 +55,73 @@ export default function DynamicForm({
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      {(docContent.content || []).map((node: Node, idx: number) => {
-        if (node.type === "questionNode") {
-          const { id, type, label, placeholder } = node.attrs;
-          return (
-            <div key={id} style={{ marginBottom: 16 }}>
-              <label>
-                {label}
-                {type === "short" ? (
-                  <input
-                    type="text"
-                    name={id}
-                    placeholder={placeholder}
-                    value={form[id] || ""}
-                    onChange={(e) => handleChange(id, e.target.value)}
-                    required
-                  />
-                ) : (
-                  <textarea
-                    name={id}
-                    placeholder={placeholder}
-                    value={form[id] || ""}
-                    onChange={(e) => handleChange(id, e.target.value)}
-                    required
-                  />
-                )}
-              </label>
-            </div>
-          );
-        }
-        if (node.type === "codeBlock") {
-          return (
-            <pre
-              key={idx}
-              style={{ background: "#f5f5f5", padding: 8, borderRadius: 4 }}
-            >
-              {node.content?.map((c: any) => c.text).join("")}
-            </pre>
-          );
-        }
-        if (node.type === "paragraph") {
-          // Optionally render paragraphs (if they have text)
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "#f9f9f9",
+      }}
+    >
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          background: "#fff",
+          padding: 32,
+          borderRadius: 12,
+          minWidth: 340,
+          maxWidth: 480,
+          width: "100%",
+        }}
+      >
+        <h2
+          style={{
+            fontSize: 28,
+            fontWeight: 700,
+            marginBottom: 28,
+            textAlign: "center",
+            letterSpacing: "-0.01em",
+          }}
+        >
+          {title}
+        </h2>
+        {(docContent.content || []).map((node: Node, idx: number) => {
+          if (node.type === "questionNode") {
+            return (
+              <QuestionFormField
+                key={node.attrs.id}
+                node={node}
+                value={form[node.attrs.id] || ""}
+                onChange={handleChange}
+              />
+            );
+          }
+          if (node.type === "codeBlock") {
+            return <CodeBlockDisplay key={idx} node={node} />;
+          }
+          // Optionally handle paragraphs, etc.
           return null;
-        }
-        return null;
-      })}
-      <button type="submit" disabled={submitting}>
-        {submitting ? "Submitting..." : "Submit"}
-      </button>
-    </form>
+        })}
+        <button
+          type="submit"
+          disabled={submitting}
+          style={{
+            marginTop: 24,
+            width: "100%",
+            padding: "12px 0",
+            borderRadius: 6,
+            background: "#222",
+            color: "#fff",
+            fontWeight: 600,
+            fontSize: 16,
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          {submitting ? "Submitting..." : "Submit"}
+        </button>
+      </form>
+    </div>
   );
 }
