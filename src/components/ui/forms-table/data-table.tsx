@@ -26,10 +26,13 @@ export function DataTable<TData, TValue>({
   data,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
-    data,
+    data: data ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
+
+  console.log("table", table);
+  console.log("getRowModel", table?.getRowModel?.());
 
   return (
     <div className="overflow-hidden rounded-md border">
@@ -51,7 +54,7 @@ export function DataTable<TData, TValue>({
           ))}
         </TableHeader>
         <TableBody>
-          {table.getRowModel().rows?.length ? (
+          {table?.getRowModel?.().rows?.length > 0 ? (
             table.getRowModel().rows.map((row) => (
               <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => (

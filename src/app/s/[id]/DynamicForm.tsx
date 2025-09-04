@@ -27,7 +27,7 @@ export default function DynamicForm({
   documentId,
   title,
 }: {
-  docContent: Record<string, unknown>;
+  docContent: any;
   documentId: string;
   title: string;
 }) {
