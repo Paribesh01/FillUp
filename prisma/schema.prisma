@@ -16,6 +16,18 @@ datasource db {
 
 
 
+
+
+model Submission {
+  id        String   @id @default(uuid())
+  document  Document @relation(fields: [documentId], references: [id])
+  documentId String
+  userId    String
+  content   Json     // Stores the user's answers
+  createdAt DateTime @default(now())
+}
+
+// ... existing code ...
 model Document {
   id        String   @id @default(uuid())
   title     String
@@ -25,13 +37,17 @@ model Document {
   updatedAt DateTime @updatedAt
   submissions Submission[]
   published Boolean  @default(false)
+  spreadsheetId String? // <-- Add this line
 }
 
-model Submission {
-  id        String   @id @default(uuid())
-  document  Document @relation(fields: [documentId], references: [id])
-  documentId String
-  userId    String
-  content   Json     // Stores the user's answers
-  createdAt DateTime @default(now())
+model GoogleIntegration {
+  id            String   @id @default(uuid())
+  userId        String   // Clerk user ID
+  accessToken   String
+  refreshToken  String
+  expiryDate    DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId])
 }
