@@ -12,6 +12,7 @@ export default async function DashboardPage() {
     title: form.title,
     createdAt: form.createdAt,
     updatedAt: form.updatedAt,
+    published: form.published,
   }));
 
   return (

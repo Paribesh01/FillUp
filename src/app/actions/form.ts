@@ -9,6 +9,15 @@ export async function getUserForms() {
     return await prisma.document.findMany({
         where: { userId: user.id },
         orderBy: { createdAt: "desc" },
+        select: {
+            id: true,
+            title: true,
+            createdAt: true,
+            updatedAt: true,
+            published: true,
+            content: true,
+
+        },
     });
 }
 
@@ -60,7 +69,7 @@ export async function getFormById(id: string) {
     if (!user) throw new Error("Not authenticated");
     return await prisma.document.findUnique({
         where: { id, userId: user.id },
-        select: { title: true, content: true },
+        select: { title: true, content: true, published: true },
     });
 }
 
@@ -71,4 +80,14 @@ export async function getAllSubmissionsForForm(documentId: string) {
         include: { document: { select: { title: true } } },
         orderBy: { createdAt: "desc" },
     });
+}
+
+export async function togglePublish(docId: string, published: boolean) {
+    console.log("togglePublish", docId, published);
+    const result = await prisma.document.update({
+        where: { id: docId },
+        data: { published },
+    });
+    console.log("result", result);
+    return result;
 }

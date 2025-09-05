@@ -14,7 +14,7 @@ export default async function SubmitFormPage({
     where: { id: params.id },
   });
 
-  if (!doc) return <div>Form not found</div>;
+  if (!doc || !doc.published) return <div>Form not found or not published</div>;
 
   const submission = await prisma.submission.findFirst({
     where: { documentId: params.id, userId: user.id },

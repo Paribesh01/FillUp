@@ -46,6 +46,8 @@ import { updateFormTitle } from "@/app/actions/form";
 import { TitleInput } from "@/components/ui/title-input";
 import { getFormById } from "@/app/actions/form";
 import MultipleChoiceQuestionNode from "@/components/custom/question-node/MultipleChoiceQuestionNode";
+import { useState, useEffect, useCallback } from "react";
+import { togglePublish } from "@/app/actions/form";
 
 export function SimpleEditor({
   docId,
@@ -55,24 +57,26 @@ export function SimpleEditor({
   initialContent: Record<string, any>;
 }) {
   const isMobile = useIsMobile();
-  const [title, setTitle] = React.useState("");
-  const [saving, setSaving] = React.useState(false);
-  const [saved, setSaved] = React.useState(false);
+  const [title, setTitle] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [published, setPublished] = useState(false);
 
-  // Fetch the title on mount
-  React.useEffect(() => {
-    async function fetchTitle() {
+  // Fetch the title and published state on mount
+  useEffect(() => {
+    async function fetchDoc() {
       if (docId) {
         const doc = await getFormById(docId);
         if (doc?.title) setTitle(doc.title);
+        if (typeof doc?.published === "boolean") setPublished(doc.published);
       }
     }
-    fetchTitle();
+    fetchDoc();
   }, [docId]);
 
-  const [mobileView, setMobileView] = React.useState<
-    "main" | "highlighter" | "link"
-  >("main");
+  const [mobileView, setMobileView] = useState<"main" | "highlighter" | "link">(
+    "main"
+  );
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -135,7 +139,7 @@ export function SimpleEditor({
   });
 
   // Add this save handler function inside your component
-  const handleSave = React.useCallback(async () => {
+  const handleSave = useCallback(async () => {
     if (!editor) return;
     setSaving(true);
     setSaved(false);
@@ -150,6 +154,12 @@ export function SimpleEditor({
     setTimeout(() => setSaved(false), 1500); // "Saved!" disappears after 1.5s
   }, [editor, docId]);
 
+  const handleTogglePublish = useCallback(async () => {
+    // Optionally, add loading state
+    await togglePublish(docId, !published);
+    setPublished((prev) => !prev);
+  }, [docId, published]);
+
   const handleTitleBlur = async () => {
     if (title.trim() && docId) {
       await updateFormTitle(docId, title.trim());
@@ -157,7 +167,7 @@ export function SimpleEditor({
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isMobile && mobileView !== "main") {
       setMobileView("main");
     }
@@ -166,22 +176,58 @@ export function SimpleEditor({
   return (
     <>
       <div className="w-full flex justify-center mt-8 mb-4">
-        <div className="max-w-xl w-full flex items-center justify-between">
-          {/* Save button at the top, aligned right */}
-          <div />
+        <div className="max-w-xl w-full flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={handleTogglePublish}
+            style={{
+              background: published ? "#22c55e" : "#f87171",
+              color: "white",
+              border: "none",
+              borderRadius: 6,
+              padding: "8px 18px",
+              fontWeight: 600,
+              fontSize: 15,
+              cursor: "pointer",
+              transition: "background 0.2s",
+            }}
+            disabled={saving}
+          >
+            {published ? "Unpublish" : "Publish"}
+          </button>
           <button
             type="button"
             onClick={handleSave}
-            style={{ marginLeft: "auto", marginBottom: 8 }}
+            style={{
+              background: saving ? "#a3a3a3" : "#2563eb",
+              color: "white",
+              border: "none",
+              borderRadius: 6,
+              padding: "8px 18px",
+              fontWeight: 600,
+              fontSize: 15,
+              cursor: saving ? "not-allowed" : "pointer",
+              boxShadow: saved ? "0 0 0 2px #22c55e" : "none",
+              transition: "background 0.2s, box-shadow 0.2s",
+              position: "relative",
+            }}
             disabled={saving}
           >
-            {saving ? "Saving..." : "Save"}
+            {saving ? "Saving..." : saved ? "Saved!" : "Save"}
+            {saved && (
+              <span
+                style={{
+                  position: "absolute",
+                  right: -60,
+                  color: "#22c55e",
+                  fontWeight: 500,
+                  fontSize: 14,
+                }}
+              >
+                ✓
+              </span>
+            )}
           </button>
-          {saved && (
-            <span style={{ marginLeft: 12, color: "green", fontWeight: 500 }}>
-              Saved!
-            </span>
-          )}
         </div>
       </div>
       <div className="w-full flex justify-center mb-4">
