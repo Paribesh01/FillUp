@@ -19,7 +19,7 @@ export const columns: ColumnDef<Form>[] = [
     header: "Title",
     cell: ({ row }) => (
       <Link
-        href={`/form/${row.original.id}`}
+        href={`/form/${row.original.id}/summary`}
         className="font-medium hover:underline"
       >
         {row.getValue("title")}

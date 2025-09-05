@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Tabs } from "@/components/ui/tabs";
 
 export default async function ResponsesPage({
   params,
@@ -18,8 +19,16 @@ export default async function ResponsesPage({
   const formId = params.id;
   const submissions = await getUserSubmissions(formId);
 
+  const tabs = [
+    { label: "Summary", href: `/form/${formId}/summary` },
+    { label: "Responses", href: `/form/${formId}/responses` },
+    { label: "Share", href: `/form/${formId}/share` },
+    { label: "Integration", href: `/form/${formId}/integration` },
+  ];
+
   return (
     <div className="max-w-4xl mx-auto py-10">
+      <Tabs tabs={tabs} />
       <h1 className="text-2xl font-bold mb-6">Your Responses</h1>
       <Table>
         <TableHeader>

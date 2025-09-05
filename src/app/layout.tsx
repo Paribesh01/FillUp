@@ -28,8 +28,9 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <div className="flex">
-          <Sidebar />
-          <main className="flex-1">{children}</main>
+          <ClerkProvider>
+            <main className="flex-1">{children}</main>
+          </ClerkProvider>
         </div>
       </body>
     </html>

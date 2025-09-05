@@ -241,12 +241,12 @@ export function SimpleEditor({
           />
         </div>
       </div>
-      <div className="simple-editor-wrapper">
+      <div className="simple-editor-wrapper overflow-x-auto max-w-full">
         <EditorContext.Provider value={{ editor }}>
           <EditorContent
             editor={editor}
             role="presentation"
-            className="simple-editor-content"
+            className="simple-editor-content overflow-x-auto max-w-full break-words"
           />
           <SlashMenu editor={editor} />
         </EditorContext.Provider>
