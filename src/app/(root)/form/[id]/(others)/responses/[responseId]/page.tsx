@@ -1,68 +1,283 @@
-import prisma from "@/app/db";
-import { currentUser } from "@clerk/nextjs/server";
-import { notFound } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  ArrowLeft,
+  Download,
+  Trash2,
+  Flag,
+  Calendar,
+  Clock,
+  User,
+  Mail,
+  MapPin,
+} from "lucide-react";
+import Link from "next/link";
 
-export default async function ResponseDetailPage({
+export default function ResponseDetailPage({
   params,
 }: {
   params: { id: string; responseId: string };
 }) {
-  const user = await currentUser();
-  if (!user) return <div>Not signed in</div>;
+  // Mock response data - in real app this would come from API
+  const response = {
+    id: params.responseId,
+    submittedAt: "2024-01-15T10:30:00Z",
+    status: "completed",
+    flagged: false,
+    submitter: {
+      email: "john.doe@example.com",
+      ip: "192.168.1.1",
+      userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+    },
+    fields: [
+      {
+        id: "name",
+        label: "Full Name",
+        type: "text",
+        value: "John Doe",
+        required: true,
+      },
+      {
+        id: "email",
+        label: "Email Address",
+        type: "email",
+        value: "john.doe@example.com",
+        required: true,
+      },
+      {
+        id: "company",
+        label: "Company",
+        type: "text",
+        value: "Acme Corp",
+        required: false,
+      },
+      {
+        id: "message",
+        label: "Message",
+        type: "textarea",
+        value:
+          "I'm interested in learning more about your services. Could you please send me more information about pricing and features?",
+        required: true,
+      },
+      {
+        id: "newsletter",
+        label: "Subscribe to newsletter",
+        type: "checkbox",
+        value: true,
+        required: false,
+      },
+      {
+        id: "budget",
+        label: "Budget Range",
+        type: "select",
+        value: "$10,000 - $25,000",
+        required: false,
+      },
+    ],
+  };
 
-  // Fetch submission and form content
-  const submission = await prisma.submission.findUnique({
-    where: { id: params.responseId, userId: user.id },
-    include: { document: { select: { title: true, content: true } } },
-  });
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
-  if (!submission) return notFound();
-
-  // Extract question labels from form content
-  const questionLabels: Record<string, string> = {};
-  const docContent = submission.document?.content;
-  function hasContentProp(obj: unknown): obj is { content: unknown } {
-    return typeof obj === "object" && obj !== null && "content" in obj;
-  }
-  if (hasContentProp(docContent) && Array.isArray(docContent.content)) {
-    for (const node of docContent.content) {
-      if (
-        node &&
-        typeof node === "object" &&
-        node.type === "questionNode" &&
-        node.attrs &&
-        typeof node.attrs.id === "string"
-      ) {
-        questionLabels[node.attrs.id] = node.attrs.label || node.attrs.id;
-      }
+  const getFieldIcon = (type: string) => {
+    switch (type) {
+      case "email":
+        return <Mail className="h-4 w-4" />;
+      case "text":
+        return <User className="h-4 w-4" />;
+      default:
+        return null;
     }
-  }
+  };
 
   return (
-    <div className="max-w-2xl mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-4">
-        Response to: {submission.document?.title || "Untitled"}
-      </h1>
-      <div className="mb-2 text-muted-foreground">
-        <div>
-          Submitted at: {new Date(submission.createdAt).toLocaleString()}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href={`/forms/${params.id}/responses`}>
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Responses
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-card-foreground">
+              Response #{response.id}
+            </h1>
+            <p className="text-muted-foreground">
+              Submitted {formatDate(response.submittedAt)}
+            </p>
+          </div>
         </div>
-        <div>
-          User ID: <span className="font-mono">{submission.userId}</span>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+          <Button variant="outline" size="sm">
+            <Flag className="h-4 w-4 mr-2" />
+            Flag
+          </Button>
+          <Button variant="destructive" size="sm">
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete
+          </Button>
         </div>
       </div>
-      <div className="bg-gray-100 rounded p-4 overflow-x-auto">
-        <ul className="whitespace-pre-wrap break-words text-sm">
-          {submission.content &&
-            Object.entries(submission.content).map(([questionId, answer]) => (
-              <li key={questionId} style={{ marginBottom: 8 }}>
-                <span className="font-semibold">
-                  {questionLabels[questionId] || questionId}:
-                </span>{" "}
-                {String(answer)}
-              </li>
-            ))}
-        </ul>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Response Status */}
+          <div className="bg-card border border-border rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-card-foreground">
+                Response Status
+              </h3>
+              <Badge
+                variant={
+                  response.status === "completed" ? "default" : "secondary"
+                }
+              >
+                {response.status}
+              </Badge>
+            </div>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Submitted:</span>
+                <span className="text-card-foreground">
+                  {formatDate(response.submittedAt)}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Time to complete:</span>
+                <span className="text-card-foreground">2m 34s</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Form Fields */}
+          <div className="bg-card border border-border rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-card-foreground mb-6">
+              Form Responses
+            </h3>
+            <div className="space-y-6">
+              {response.fields.map((field) => (
+                <div
+                  key={field.id}
+                  className="border-b border-border pb-4 last:border-b-0 last:pb-0"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    {getFieldIcon(field.type)}
+                    <label className="text-sm font-medium text-card-foreground">
+                      {field.label}
+                      {field.required && (
+                        <span className="text-destructive ml-1">*</span>
+                      )}
+                    </label>
+                    <Badge variant="outline" className="text-xs">
+                      {field.type}
+                    </Badge>
+                  </div>
+                  <div className="bg-muted/50 rounded-md p-3">
+                    {field.type === "checkbox" ? (
+                      <span className="text-card-foreground">
+                        {field.value ? "✓ Yes" : "✗ No"}
+                      </span>
+                    ) : field.type === "textarea" ? (
+                      <p className="text-card-foreground whitespace-pre-wrap">
+                        {field.value}
+                      </p>
+                    ) : (
+                      <span className="text-card-foreground">
+                        {field.value}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Submitter Info */}
+          <div className="bg-card border border-border rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-card-foreground mb-4">
+              Submitter Information
+            </h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Email:</span>
+                <span className="text-card-foreground">
+                  {response.submitter.email}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">IP Address:</span>
+                <span className="text-card-foreground font-mono">
+                  {response.submitter.ip}
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <User className="h-4 w-4 text-muted-foreground mt-0.5" />
+                <div>
+                  <span className="text-muted-foreground">User Agent:</span>
+                  <p className="text-card-foreground text-xs mt-1 break-all">
+                    {response.submitter.userAgent}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="bg-card border border-border rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-card-foreground mb-4">
+              Actions
+            </h3>
+            <div className="space-y-2">
+              <Button
+                variant="outline"
+                className="w-full justify-start bg-transparent"
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Send Email
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start bg-transparent"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export Response
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start bg-transparent"
+              >
+                <Flag className="h-4 w-4 mr-2" />
+                Flag as Spam
+              </Button>
+              <Button variant="destructive" className="w-full justify-start">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Response
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
