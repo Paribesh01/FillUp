@@ -12,68 +12,42 @@ import {
   MapPin,
 } from "lucide-react";
 import Link from "next/link";
+import { getSubmissionById } from "@/app/actions/form";
 
-export default function ResponseDetailPage({
+export default async function ResponseDetailPage({
   params,
 }: {
   params: { id: string; responseId: string };
 }) {
-  // Mock response data - in real app this would come from API
+  const submission = await getSubmissionById(params.responseId);
+
+  console.log("----", submission?.content);
+
+  if (!submission) {
+    return <div>Response not found.</div>;
+  }
+
+  // Map fields as needed
   const response = {
-    id: params.responseId,
-    submittedAt: "2024-01-15T10:30:00Z",
-    status: "completed",
-    flagged: false,
+    id: submission.id,
+    submittedAt: submission.createdAt,
+    status: "completed", // or whatever you want to show
+    flagged: false, // unless you add this to your schema
     submitter: {
-      email: "john.doe@example.com",
-      ip: "192.168.1.1",
-      userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+      email: "N/A", // If you have email info elsewhere, use it
+      ip: "N/A",
+      userAgent: "N/A",
     },
-    fields: [
-      {
-        id: "name",
-        label: "Full Name",
-        type: "text",
-        value: "John Doe",
-        required: true,
-      },
-      {
-        id: "email",
-        label: "Email Address",
-        type: "email",
-        value: "john.doe@example.com",
-        required: true,
-      },
-      {
-        id: "company",
-        label: "Company",
-        type: "text",
-        value: "Acme Corp",
-        required: false,
-      },
-      {
-        id: "message",
-        label: "Message",
-        type: "textarea",
-        value:
-          "I'm interested in learning more about your services. Could you please send me more information about pricing and features?",
-        required: true,
-      },
-      {
-        id: "newsletter",
-        label: "Subscribe to newsletter",
-        type: "checkbox",
-        value: true,
-        required: false,
-      },
-      {
-        id: "budget",
-        label: "Budget Range",
-        type: "select",
-        value: "$10,000 - $25,000",
-        required: false,
-      },
-    ],
+    fields: Array.isArray(submission.content)
+      ? submission.content.map((field) => ({
+          id: field.id,
+          label: field.question,
+          type: field.type,
+          value: field.answer,
+          options: field.options || [],
+          required: false, // or true if you have that info
+        }))
+      : [],
   };
 
   const formatDate = (dateString: string) => {
@@ -193,6 +167,10 @@ export default function ResponseDetailPage({
                     {field.type === "checkbox" ? (
                       <span className="text-card-foreground">
                         {field.value ? "✓ Yes" : "✗ No"}
+                      </span>
+                    ) : field.type === "multipleChoice" ? (
+                      <span className="text-card-foreground">
+                        {field.value}
                       </span>
                     ) : field.type === "textarea" ? (
                       <p className="text-card-foreground whitespace-pre-wrap">

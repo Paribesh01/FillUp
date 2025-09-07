@@ -112,9 +112,20 @@ export default function DynamicForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+
+    // Build the array of answers with all relevant fields
+    const content = questions.map((q) => ({
+      id: q.attrs.id,
+      type: q.attrs.type,
+      question: q.attrs.label,
+      answer: form[q.attrs.id] || "",
+      options: q.attrs.options || undefined, // Only include if present
+      // Add more fields from q.attrs as needed
+    }));
+
     await fetch("/api/sumbit-form", {
       method: "POST",
-      body: JSON.stringify({ documentId, content: form }),
+      body: JSON.stringify({ documentId, content }),
       headers: { "Content-Type": "application/json" },
     });
     window.location.reload();

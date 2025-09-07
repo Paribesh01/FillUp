@@ -91,3 +91,9 @@ export async function togglePublish(docId: string, published: boolean) {
     console.log("result", result);
     return result;
 }
+
+export async function getSubmissionById(submissionId: string) {
+    return await prisma.submission.findUnique({
+        where: { id: submissionId },
+    });
+}
