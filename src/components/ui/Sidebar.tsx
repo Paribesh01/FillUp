@@ -41,7 +41,7 @@ export function Sidebar({ className }: SidebarProps) {
     {
       name: "Forms",
       icon: FileText,
-      href: "/forms",
+      href: "/form",
       current: false,
       badge: "12",
     },

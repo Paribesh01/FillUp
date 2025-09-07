@@ -97,3 +97,12 @@ export async function getSubmissionById(submissionId: string) {
         where: { id: submissionId },
     });
 }
+
+export async function deleteForm(id: string) {
+    const user = await currentUser();
+    if (!user) throw new Error("Not authenticated");
+    // Delete the document only if it belongs to the user
+    await prisma.document.delete({
+        where: { id, userId: user.id },
+    });
+}

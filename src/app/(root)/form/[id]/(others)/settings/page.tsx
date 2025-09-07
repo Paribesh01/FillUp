@@ -1,6 +1,18 @@
+"use client";
 import { Button } from "@/components/ui/button";
+import { deleteForm } from "@/app/actions/form";
+import { useRouter } from "next/navigation";
+import { useTransition, useState } from "react";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
-// Mock form data
 const formData = {
   title: "Customer Feedback Survey",
   description: "Collect valuable feedback from our customers",
@@ -11,6 +23,18 @@ export default function FormSettingsPage({
 }: {
   params: { id: string };
 }) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [open, setOpen] = useState(false);
+
+  async function handleDelete() {
+    startTransition(async () => {
+      await deleteForm(params.id);
+      setOpen(false);
+      router.push("/dashboard");
+    });
+  }
+
   return (
     <div className="space-y-6">
       <div className="bg-card border border-border rounded-lg p-6">
@@ -92,13 +116,42 @@ export default function FormSettingsPage({
                 Permanently delete this form and all responses
               </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-red-600 border-red-200 hover:bg-red-50 bg-transparent"
-            >
-              Delete
-            </Button>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-red-600 border-red-200 hover:bg-red-50 bg-transparent"
+                >
+                  Delete
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Are you sure?</DialogTitle>
+                  <DialogDescription>
+                    This action cannot be undone. This will permanently delete
+                    the form and all its responses.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setOpen(false)}
+                    disabled={isPending}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDelete}
+                    disabled={isPending}
+                  >
+                    {isPending ? "Deleting..." : "Delete"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>

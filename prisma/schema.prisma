@@ -19,25 +19,25 @@ datasource db {
 
 
 model Submission {
-  id        String   @id @default(uuid())
-  document  Document @relation(fields: [documentId], references: [id])
+  id         String   @id @default(uuid())
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
   documentId String
-  userId    String
-  content   Json     // Stores the user's answers
-  createdAt DateTime @default(now())
+  userId     String
+  content    Json
+  createdAt  DateTime @default(now())
 }
 
-// ... existing code ...
 model Document {
   id        String   @id @default(uuid())
   title     String
-  content   Json     // Stores Tiptap JSON
+  description String? 
+  content   Json     
   userId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   submissions Submission[]
   published Boolean  @default(false)
-  spreadsheetId String? // <-- Add this line
+  spreadsheetId String?
 }
 
 model GoogleIntegration {
