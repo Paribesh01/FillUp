@@ -15,19 +15,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-
-// Mock form data - in real app, this would be fetched based on params.id
-const formData = {
-  id: 1,
-  title: "Customer Feedback Survey",
-  description: "Collect valuable feedback from our customers",
-  status: "Published",
-  responses: 234,
-  views: 1250,
-  createdAt: "2024-01-15",
-  lastModified: "2024-01-20",
-  category: "Survey",
-};
+import { getFormById } from "@/app/actions/form";
+import { PublishToggleButton } from "./PublishToggleButton";
 
 const tabs = [
   { id: "summary", label: "Summary", icon: BarChart3, href: "/summary" },
@@ -42,13 +31,21 @@ const tabs = [
   { id: "settings", label: "Settings", icon: Settings, href: "/settings" },
 ];
 
-export default function FormLayout({
+export default async function FormLayout({
   children,
   params,
 }: {
   children: React.ReactNode;
   params: { id: string };
 }) {
+  // Fetch real form data
+  const form = await getFormById(params.id);
+
+  // If not found, show a fallback
+  if (!form) {
+    return <div>Form not found</div>;
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Published":
@@ -76,28 +73,37 @@ export default function FormLayout({
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-2xl font-bold text-foreground">
-                  {formData.title}
+                  {form.title}
                 </h1>
                 <Badge
-                  className={cn("text-xs", getStatusColor(formData.status))}
+                  className={cn(
+                    "text-xs",
+                    getStatusColor(form.published ? "Published" : "Draft")
+                  )}
                 >
-                  {formData.status}
+                  {form.published ? "Published" : "Draft"}
                 </Badge>
               </div>
-              <p className="text-muted-foreground">{formData.description}</p>
+              <p className="text-muted-foreground">{form.description}</p>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm">
                 <Eye className="h-4 w-4 mr-2" />
                 Preview
               </Button>
-              <Button variant="outline" size="sm">
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/form/${params.id}`}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Link>
               </Button>
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
+              <PublishToggleButton
+                docId={params.id}
+                published={form.published}
+              />
             </div>
           </div>
 

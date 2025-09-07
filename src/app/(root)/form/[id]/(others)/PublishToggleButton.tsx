@@ -1,0 +1,33 @@
+"use client";
+import { togglePublish } from "@/app/actions/form";
+import { Button } from "@/components/ui/button";
+import { useState, useTransition } from "react";
+
+export function PublishToggleButton({
+  docId,
+  published,
+}: {
+  docId: string;
+  published: boolean;
+}) {
+  const [isPending, startTransition] = useTransition();
+  const [isPublished, setIsPublished] = useState(published);
+
+  const handleToggle = () => {
+    startTransition(async () => {
+      await togglePublish(docId, !isPublished);
+      setIsPublished((prev) => !prev);
+    });
+  };
+
+  return (
+    <Button
+      variant={isPublished ? "outline" : "default"}
+      size="sm"
+      onClick={handleToggle}
+      disabled={isPending}
+    >
+      {isPublished ? "Unpublish" : "Publish"}
+    </Button>
+  );
+}

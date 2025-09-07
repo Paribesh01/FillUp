@@ -1,11 +1,54 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import { Webhook, Mail, BarChart3, Code } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function FormIntegrationsPage({
   params,
 }: {
   params: { id: string };
 }) {
+  const [googleConnected, setGoogleConnected] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    async function fetchStatus() {
+      const res = await fetch(
+        `/api/google-oauth/status?documentId=${params.id}`
+      );
+      const data = await res.json();
+      setGoogleConnected(data.connected);
+    }
+    fetchStatus();
+  }, [params.id]);
+
+  const integrations = [
+    {
+      name: "Webhooks",
+      description: "Send form data to any URL",
+      icon: Webhook,
+      comingSoon: true,
+    },
+    {
+      name: "Email Notifications",
+      description: "Get notified of new responses",
+      icon: Mail,
+      comingSoon: true,
+    },
+    {
+      name: "Google Sheets",
+      description: "Sync responses to spreadsheet",
+      icon: BarChart3,
+      comingSoon: false,
+      connected: googleConnected,
+    },
+    {
+      name: "Slack",
+      description: "Post notifications to Slack",
+      icon: Code,
+      comingSoon: true,
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="bg-card border border-border rounded-lg p-6">
@@ -13,32 +56,7 @@ export default function FormIntegrationsPage({
           Available Integrations
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[
-            {
-              name: "Webhooks",
-              description: "Send form data to any URL",
-              icon: Webhook,
-              connected: false,
-            },
-            {
-              name: "Email Notifications",
-              description: "Get notified of new responses",
-              icon: Mail,
-              connected: true,
-            },
-            {
-              name: "Google Sheets",
-              description: "Sync responses to spreadsheet",
-              icon: BarChart3,
-              connected: false,
-            },
-            {
-              name: "Slack",
-              description: "Post notifications to Slack",
-              icon: Code,
-              connected: false,
-            },
-          ].map((integration, index) => (
+          {integrations.map((integration, index) => (
             <div
               key={index}
               className="border border-border rounded-lg p-4 flex items-center justify-between"
@@ -56,12 +74,30 @@ export default function FormIntegrationsPage({
                   </p>
                 </div>
               </div>
-              <Button
-                variant={integration.connected ? "outline" : "default"}
-                size="sm"
-              >
-                {integration.connected ? "Configure" : "Connect"}
-              </Button>
+              {integration.comingSoon ? (
+                <Button variant="outline" size="sm" disabled>
+                  Coming soon
+                </Button>
+              ) : googleConnected === null ? (
+                <Button variant="outline" size="sm" disabled>
+                  Loading...
+                </Button>
+              ) : integration.name === "Google Sheets" &&
+                !integration.connected ? (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => {
+                    window.location.href = `/api/google-oauth/start?documentId=${params.id}`;
+                  }}
+                >
+                  Connect
+                </Button>
+              ) : (
+                <Button variant="outline" className="bg-green-500" size="sm">
+                  Connected
+                </Button>
+              )}
             </div>
           ))}
         </div>

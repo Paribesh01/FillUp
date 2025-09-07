@@ -2,35 +2,24 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download } from "lucide-react";
 import Link from "next/link";
+import { getAllSubmissionsForForm } from "@/app/actions/form";
 
-export default function FormResponsesPage({
+export default async function FormResponsesPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const responses = [
-    {
-      id: "resp_001",
-      submittedAt: "2024-01-15T10:30:00Z",
-      email: "john.doe@example.com",
-      status: "completed",
-      fields: { name: "John Doe", company: "Acme Corp" },
-    },
-    {
-      id: "resp_002",
-      submittedAt: "2024-01-14T15:45:00Z",
-      email: "jane.smith@example.com",
-      status: "completed",
-      fields: { name: "Jane Smith", company: "Tech Solutions" },
-    },
-    {
-      id: "resp_003",
-      submittedAt: "2024-01-13T09:20:00Z",
-      email: "mike.wilson@example.com",
-      status: "partial",
-      fields: { name: "Mike Wilson", company: "" },
-    },
-  ];
+  // Fetch real submissions from the database
+  const submissions = await getAllSubmissionsForForm(params.id);
+
+  // Map submissions to the structure expected by your table
+  const responses = submissions.map((submission: any) => ({
+    id: submission.id,
+    submittedAt: submission.createdAt,
+    email: submission.userId, // You may want to join with user table for real email
+    status: "completed", // You may want to add a status field in your model
+    fields: submission.content, // Assuming content is { name, company, ... }
+  }));
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
