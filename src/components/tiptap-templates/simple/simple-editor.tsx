@@ -50,6 +50,7 @@ import { useState, useEffect, useCallback } from "react";
 import { togglePublish } from "@/app/actions/form";
 import CheckboxQuestionNode from "@/components/custom/question-node/CheckboxQuestionNode";
 import { toast } from "sonner";
+import DynamicForm from "@/app/s/[id]/DynamicForm"; // adjust path if needed
 
 export function SimpleEditor({
   docId,
@@ -63,6 +64,7 @@ export function SimpleEditor({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [published, setPublished] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
 
   // Fetch the title and published state on mount
   useEffect(() => {
@@ -193,6 +195,9 @@ export function SimpleEditor({
     }
   }, [isMobile, mobileView]);
 
+  // Get the current content for preview
+  const currentContent = editor?.getJSON ? editor.getJSON() : initialContent;
+
   return (
     <>
       <div className="w-full flex justify-center mt-8 mb-4">
@@ -248,29 +253,61 @@ export function SimpleEditor({
               </span>
             )}
           </button>
+          <button
+            type="button"
+            onClick={() => setPreviewMode((prev) => !prev)}
+            style={{
+              background: previewMode ? "#fbbf24" : "#a3a3a3",
+              color: "white",
+              border: "none",
+              borderRadius: 6,
+              padding: "8px 18px",
+              fontWeight: 600,
+              fontSize: 15,
+              cursor: "pointer",
+              transition: "background 0.2s",
+            }}
+          >
+            {previewMode ? "Back to Editor" : "Preview"}
+          </button>
         </div>
       </div>
-      <div className="w-full flex justify-center mb-4">
-        <div className="max-w-xl w-full">
-          <TitleInput
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onBlur={handleTitleBlur}
-            placeholder="Title of the form"
-            aria-label="Form title"
-          />
+      {previewMode ? (
+        <div className="w-full flex justify-center">
+          <div className="max-w-xl w-full">
+            <DynamicForm
+              docContent={currentContent}
+              documentId={docId}
+              title={title}
+              preview={true}
+            />
+          </div>
         </div>
-      </div>
-      <div className="simple-editor-wrapper overflow-x-auto max-w-full">
-        <EditorContext.Provider value={{ editor }}>
-          <EditorContent
-            editor={editor}
-            role="presentation"
-            className="simple-editor-content overflow-x-auto max-w-full break-words"
-          />
-          <SlashMenu editor={editor} />
-        </EditorContext.Provider>
-      </div>
+      ) : (
+        <>
+          <div className="w-full flex justify-center mb-4">
+            <div className="max-w-xl w-full">
+              <TitleInput
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                onBlur={handleTitleBlur}
+                placeholder="Title of the form"
+                aria-label="Form title"
+              />
+            </div>
+          </div>
+          <div className="simple-editor-wrapper overflow-x-auto max-w-full">
+            <EditorContext.Provider value={{ editor }}>
+              <EditorContent
+                editor={editor}
+                role="presentation"
+                className="simple-editor-content overflow-x-auto max-w-full break-words"
+              />
+              <SlashMenu editor={editor} />
+            </EditorContext.Provider>
+          </div>
+        </>
+      )}
     </>
   );
 }

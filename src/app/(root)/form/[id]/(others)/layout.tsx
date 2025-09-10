@@ -65,7 +65,7 @@ export default async function FormLayout({
         <div className="p-8">
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
-            <Link href="/forms">
+            <Link href="/form">
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                 <ArrowLeft className="h-4 w-4" />
               </Button>

@@ -26,10 +26,12 @@ export default function DynamicForm({
   docContent,
   documentId,
   title,
+  preview = false, // default to false
 }: {
   docContent: any;
   documentId: string;
   title: string;
+  preview?: boolean;
 }) {
   // Type guard for question nodes
   function isQuestionNode(
@@ -112,6 +114,10 @@ export default function DynamicForm({
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    if (preview) {
+      e.preventDefault();
+      return; // Do nothing in preview mode
+    }
     e.preventDefault();
     setSubmitting(true);
 
@@ -234,19 +240,8 @@ export default function DynamicForm({
           {isLastPage && (
             <button
               type="submit"
-              disabled={submitting}
-              style={{
-                marginLeft: isFirstPage ? 0 : 12,
-                width: "100%",
-                padding: "12px 0",
-                borderRadius: 6,
-                background: "#222",
-                color: "#fff",
-                fontWeight: 600,
-                fontSize: 16,
-                border: "none",
-                cursor: "pointer",
-              }}
+              disabled={preview || submitting}
+              style={preview ? { opacity: 0.5, pointerEvents: "none" } : {}}
             >
               {submitting ? "Submitting..." : "Submit"}
             </button>

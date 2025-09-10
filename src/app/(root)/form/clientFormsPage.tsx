@@ -50,10 +50,7 @@ export default function ClientFormsPage({ initialForms }) {
                 Create and manage your forms
               </p>
             </div>
-            <Button
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              onClick={handleCreate}
-            >
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
               <Plus className="h-4 w-4 mr-2" />
               Create Form
             </Button>
