@@ -17,10 +17,10 @@ declare module '@tiptap/core' {
 export interface QuestionNodeAttrs {
     id: string;
     label: string;
-    type: 'short' | 'long' | 'multipleChoice'; // <-- add multipleChoice
+    type: 'short' | 'long' | 'multipleChoice' | 'checkbox';
     placeholder?: string;
     answer?: string;
-    options?: string[]; // <-- add options
+    options?: string[];
 }
 
 export const QuestionNode = Node.create<QuestionNodeOptions>({

@@ -2,7 +2,7 @@ import React from "react";
 
 type QuestionNodeAttrs = {
   id: string;
-  type: "short" | "long" | "multipleChoice";
+  type: "short" | "long" | "multipleChoice" | "checkbox";
   label: string;
   answer: string;
   placeholder: string;
@@ -15,8 +15,8 @@ export default function QuestionFormField({
   onChange,
 }: {
   node: { attrs: QuestionNodeAttrs };
-  value: string;
-  onChange: (id: string, value: string) => void;
+  value: string | string[];
+  onChange: (id: string, value: string | string[]) => void;
 }) {
   const { id, type, label, placeholder, options } = node.attrs;
 
@@ -42,7 +42,7 @@ export default function QuestionFormField({
         <input
           type="text"
           className="block w-full border border-gray-300 rounded px-2 py-1 text-base"
-          value={value}
+          value={typeof value === "string" ? value : ""}
           placeholder={placeholder}
           onChange={(e) => onChange(id, e.target.value)}
           required
@@ -51,7 +51,7 @@ export default function QuestionFormField({
       ) : type === "long" ? (
         <textarea
           className="block w-full border border-gray-300 rounded px-2 py-1 text-base resize-none"
-          value={value}
+          value={typeof value === "string" ? value : ""}
           placeholder={placeholder}
           onChange={(e) => onChange(id, e.target.value)}
           required
@@ -77,6 +77,38 @@ export default function QuestionFormField({
               {option}
             </label>
           ))}
+        </div>
+      ) : type === "checkbox" && options && options.length > 0 ? (
+        <div style={{ marginTop: 4 }}>
+          {options.map((option, idx) => {
+            const checked = Array.isArray(value) && value.includes(option);
+            return (
+              <label
+                key={idx}
+                style={{ display: "block", marginBottom: 6, cursor: "pointer" }}
+              >
+                <input
+                  type="checkbox"
+                  name={id + "[]"}
+                  value={option}
+                  checked={checked}
+                  onChange={() => {
+                    let newValue: string[] = Array.isArray(value)
+                      ? [...value]
+                      : [];
+                    if (checked) {
+                      newValue = newValue.filter((v) => v !== option);
+                    } else {
+                      newValue.push(option);
+                    }
+                    onChange(id, newValue);
+                  }}
+                  style={{ marginRight: 8 }}
+                />
+                {option}
+              </label>
+            );
+          })}
         </div>
       ) : null}
     </div>

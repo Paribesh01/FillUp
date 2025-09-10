@@ -5,7 +5,7 @@ import CodeBlockDisplay from "./CodeBlockDisplay";
 
 type QuestionNodeAttrs = {
   id: string;
-  type: "short" | "long" | "multipleChoice";
+  type: "short" | "long" | "multipleChoice" | "checkbox";
   label: string;
   answer: string;
   placeholder: string;
@@ -81,8 +81,10 @@ export default function DynamicForm({
     ? docContent.content
     : [];
   const questions = contentArray.filter(isQuestionNode);
-  const [form, setForm] = useState<{ [id: string]: string }>(
-    Object.fromEntries(questions.map((q) => [q.attrs.id, ""]))
+  const [form, setForm] = useState<{ [id: string]: string | string[] }>(
+    Object.fromEntries(
+      questions.map((q) => [q.attrs.id, q.attrs.type === "checkbox" ? [] : ""])
+    )
   );
   const [submitting, setSubmitting] = useState(false);
 
@@ -105,7 +107,7 @@ export default function DynamicForm({
   const isFirstPage = pageIdx === 0;
   const isLastPage = pageIdx === pages.length - 1;
 
-  const handleChange = (id: string, value: string) => {
+  const handleChange = (id: string, value: string | string[]) => {
     setForm((prev) => ({ ...prev, [id]: value }));
   };
 
@@ -118,8 +120,11 @@ export default function DynamicForm({
       id: q.attrs.id,
       type: q.attrs.type,
       question: q.attrs.label,
-      answer: form[q.attrs.id] || "",
-      options: q.attrs.options || undefined, // Only include if present
+      answer:
+        q.attrs.type === "checkbox"
+          ? JSON.stringify(form[q.attrs.id] || [])
+          : form[q.attrs.id] || "",
+      options: q.attrs.options || undefined,
       // Add more fields from q.attrs as needed
     }));
 

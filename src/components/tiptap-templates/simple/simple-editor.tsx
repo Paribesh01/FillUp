@@ -48,6 +48,7 @@ import { getFormById } from "@/app/actions/form";
 import MultipleChoiceQuestionNode from "@/components/custom/question-node/MultipleChoiceQuestionNode";
 import { useState, useEffect, useCallback } from "react";
 import { togglePublish } from "@/app/actions/form";
+import CheckboxQuestionNode from "@/components/custom/question-node/CheckboxQuestionNode";
 
 export function SimpleEditor({
   docId,
@@ -122,7 +123,9 @@ export function SimpleEditor({
             if (props.node.attrs.type === "multipleChoice") {
               return ReactNodeViewRenderer(MultipleChoiceQuestionNode)(props);
             }
-            // fallback to your default QuestionNodeComponent
+            if (props.node.attrs.type === "checkbox") {
+              return ReactNodeViewRenderer(CheckboxQuestionNode)(props);
+            }
             return ReactNodeViewRenderer(QuestionNodeComponent)(props);
           };
         },

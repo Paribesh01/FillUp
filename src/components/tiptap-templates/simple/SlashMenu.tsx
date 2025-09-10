@@ -79,6 +79,20 @@ const SLASH_OPTIONS: {
     ],
   },
   {
+    label: "Checkbox Question",
+    command: (editor: Editor) =>
+      editor
+        .chain()
+        .focus()
+        .insertQuestion({
+          type: "checkbox",
+          label: "Untitled checkbox question",
+          options: ["Option 1", "Option 2"], // <-- This is critical!
+        })
+        .run(),
+    match: ["checkbox", "checkbox question", "multi select", "check", "boxes"],
+  },
+  {
     label: "Next Page Indicator",
     command: (editor: Editor) =>
       editor.chain().focus().insertContent({ type: "nextPage" }).run(),
