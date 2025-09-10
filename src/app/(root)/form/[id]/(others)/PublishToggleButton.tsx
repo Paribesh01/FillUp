@@ -2,6 +2,7 @@
 import { togglePublish } from "@/app/actions/form";
 import { Button } from "@/components/ui/button";
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 
 export function PublishToggleButton({
   docId,
@@ -15,8 +16,13 @@ export function PublishToggleButton({
 
   const handleToggle = () => {
     startTransition(async () => {
-      await togglePublish(docId, !isPublished);
-      setIsPublished((prev) => !prev);
+      try {
+        await togglePublish(docId, !isPublished);
+        setIsPublished((prev) => !prev);
+        toast.success(!isPublished ? "Form published!" : "Form unpublished!");
+      } catch (e) {
+        toast.error("Failed to update publish status.");
+      }
     });
   };
 

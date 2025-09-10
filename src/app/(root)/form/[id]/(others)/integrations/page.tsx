@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Webhook, Mail, BarChart3, Code } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function FormIntegrationsPage({
   params,
@@ -88,6 +89,7 @@ export default function FormIntegrationsPage({
                   variant="default"
                   size="sm"
                   onClick={() => {
+                    toast.success("Redirecting to connect Google Sheets...");
                     window.location.href = `/api/google-oauth/start?documentId=${params.id}`;
                   }}
                 >

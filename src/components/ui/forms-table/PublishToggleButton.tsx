@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { togglePublish } from "@/app/actions/form";
+import { toast } from "sonner";
 
 export default function PublishToggleButton({
   id,
@@ -14,8 +15,13 @@ export default function PublishToggleButton({
 
   const handleToggle = async () => {
     setLoading(true);
-    await togglePublish(id, !isPublished);
-    setIsPublished(!isPublished);
+    try {
+      await togglePublish(id, !isPublished);
+      setIsPublished(!isPublished);
+      toast.success(!isPublished ? "Form published!" : "Form unpublished!");
+    } catch (e) {
+      toast.error("Failed to update publish status.");
+    }
     setLoading(false);
   };
 

@@ -49,6 +49,7 @@ import MultipleChoiceQuestionNode from "@/components/custom/question-node/Multip
 import { useState, useEffect, useCallback } from "react";
 import { togglePublish } from "@/app/actions/form";
 import CheckboxQuestionNode from "@/components/custom/question-node/CheckboxQuestionNode";
+import { toast } from "sonner";
 
 export function SimpleEditor({
   docId,
@@ -68,8 +69,10 @@ export function SimpleEditor({
     async function fetchDoc() {
       if (docId) {
         const doc = await getFormById(docId);
-        if (doc?.title) setTitle(doc.title);
-        if (typeof doc?.published === "boolean") setPublished(doc.published);
+        if (doc && !("error" in doc)) {
+          if (doc.title) setTitle(doc.title);
+          if (typeof doc.published === "boolean") setPublished(doc.published);
+        }
       }
     }
     fetchDoc();
@@ -146,27 +149,41 @@ export function SimpleEditor({
     if (!editor) return;
     setSaving(true);
     setSaved(false);
-    const json = editor.getJSON();
-    await fetch("/api/save-form-content", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ docId, content: json }),
-    });
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1500); // "Saved!" disappears after 1.5s
+    try {
+      const json = editor.getJSON();
+      await fetch("/api/save-form-content", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ docId, content: json }),
+      });
+      setSaving(false);
+      setSaved(true);
+      toast.success("Form saved!");
+      setTimeout(() => setSaved(false), 1500); // "Saved!" disappears after 1.5s
+    } catch (e) {
+      setSaving(false);
+      toast.error("Failed to save form.");
+    }
   }, [editor, docId]);
 
   const handleTogglePublish = useCallback(async () => {
-    // Optionally, add loading state
-    await togglePublish(docId, !published);
-    setPublished((prev) => !prev);
+    try {
+      await togglePublish(docId, !published);
+      setPublished((prev) => !prev);
+      toast.success(!published ? "Form published!" : "Form unpublished!");
+    } catch (e) {
+      toast.error("Failed to update publish status.");
+    }
   }, [docId, published]);
 
   const handleTitleBlur = async () => {
     if (title.trim() && docId) {
-      await updateFormTitle(docId, title.trim());
-      // Optionally: show a toast or set a "saved" state
+      try {
+        await updateFormTitle(docId, title.trim());
+        toast.success("Title updated!");
+      } catch (e) {
+        toast.error("Failed to update title.");
+      }
     }
   };
 

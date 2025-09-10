@@ -5,6 +5,7 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { createForm } from "@/app/actions/form";
+import { toast } from "sonner";
 
 export default function CreateFormButton() {
   const [isPending, startTransition] = useTransition();
@@ -12,8 +13,13 @@ export default function CreateFormButton() {
 
   const handleCreate = () => {
     startTransition(async () => {
-      const form = await createForm();
-      router.push(`/form/${form.id}`);
+      try {
+        const form = await createForm();
+        toast.success("Form created!");
+        router.push(`/form/${form.id}`);
+      } catch (error) {
+        toast.error("Failed to create form.");
+      }
     });
   };
 

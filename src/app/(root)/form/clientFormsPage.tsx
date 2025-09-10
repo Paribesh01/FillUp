@@ -10,12 +10,12 @@ import {
   Copy,
   Plus,
   BarChart3,
-  Users,
   Search,
   Filter,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function ClientFormsPage({ initialForms }) {
   const [forms] = useState(initialForms);
@@ -33,6 +33,11 @@ export default function ClientFormsPage({ initialForms }) {
   });
   const router = useRouter();
 
+  const handleCopy = (formId) => {
+    navigator.clipboard.writeText(`${window.location.origin}/s/${formId}`);
+    toast.success("Form link copied!");
+  };
+
   return (
     <div className="flex h-screen bg-background">
       <main className="flex-1 overflow-auto">
@@ -45,7 +50,10 @@ export default function ClientFormsPage({ initialForms }) {
                 Create and manage your forms
               </p>
             </div>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              onClick={handleCreate}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Create Form
             </Button>
@@ -156,7 +164,11 @@ export default function ClientFormsPage({ initialForms }) {
                     <Edit className="h-4 w-4 mr-1" />
                     Edit
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCopy(form.id)}
+                  >
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>

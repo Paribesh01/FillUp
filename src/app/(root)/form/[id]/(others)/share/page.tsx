@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link2, Code, Mail } from "lucide-react";
+import { toast } from "sonner";
 
 // Remove the mock formData
 
@@ -15,6 +16,9 @@ export default function FormSharePage({ params }: { params: { id: string } }) {
   const handleCopy = (text: string, type: "share" | "embed") => {
     navigator.clipboard.writeText(text).then(() => {
       setCopied(type);
+      toast.success(
+        type === "share" ? "Share link copied!" : "Embed code copied!"
+      );
       setTimeout(() => setCopied(null), 1500);
     });
   };

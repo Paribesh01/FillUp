@@ -12,6 +12,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 const formData = {
   title: "Customer Feedback Survey",
@@ -29,9 +30,14 @@ export default function FormSettingsPage({
 
   async function handleDelete() {
     startTransition(async () => {
-      await deleteForm(params.id);
-      setOpen(false);
-      router.push("/dashboard");
+      try {
+        await deleteForm(params.id);
+        setOpen(false);
+        toast.success("Form deleted.");
+        router.push("/dashboard");
+      } catch (e) {
+        toast.error("Failed to delete form.");
+      }
     });
   }
 
