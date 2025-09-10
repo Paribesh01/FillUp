@@ -89,6 +89,7 @@ export default function DynamicForm({
     )
   );
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   // --- Pagination logic ---
   // Split content into pages by nextPage nodes
@@ -139,7 +140,7 @@ export default function DynamicForm({
       body: JSON.stringify({ documentId, content }),
       headers: { "Content-Type": "application/json" },
     });
-    window.location.reload();
+    setSubmitted(true);
   };
 
   return (
@@ -152,102 +153,119 @@ export default function DynamicForm({
         background: "#f9f9f9",
       }}
     >
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          background: "#fff",
-          padding: 32,
-          borderRadius: 12,
-          minWidth: 340,
-          maxWidth: 480,
-          width: "100%",
-        }}
-      >
-        <h2
-          style={{
-            fontSize: 28,
-            fontWeight: 700,
-            marginBottom: 28,
-            textAlign: "center",
-            letterSpacing: "-0.01em",
-          }}
-        >
-          {title}
-        </h2>
-        {pages[pageIdx].map((node, idx) => {
-          if (isQuestionNode(node)) {
-            return (
-              <QuestionFormField
-                key={node.attrs.id}
-                node={node}
-                value={form[node.attrs.id] || ""}
-                onChange={handleChange}
-              />
-            );
-          }
-          if (isCodeBlockNode(node)) {
-            return <CodeBlockDisplay key={idx} node={node} />;
-          }
-          // Optionally handle paragraphs, etc.
-          return null;
-        })}
+      {submitted ? (
         <div
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginTop: 24,
+            background: "#fff",
+            padding: 32,
+            borderRadius: 12,
+            minWidth: 340,
+            maxWidth: 480,
+            width: "100%",
+            textAlign: "center",
           }}
         >
-          {!isFirstPage && (
-            <button
-              type="button"
-              onClick={() => setPageIdx((idx) => Math.max(0, idx - 1))}
-              style={{
-                padding: "10px 18px",
-                borderRadius: 6,
-                background: "#eee",
-                color: "#333",
-                fontWeight: 500,
-                fontSize: 16,
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              Previous
-            </button>
-          )}
-          {!isLastPage && (
-            <button
-              type="button"
-              onClick={() =>
-                setPageIdx((idx) => Math.min(pages.length - 1, idx + 1))
-              }
-              style={{
-                marginLeft: isFirstPage ? 0 : 12,
-                padding: "10px 18px",
-                borderRadius: 6,
-                background: "#222",
-                color: "#fff",
-                fontWeight: 600,
-                fontSize: 16,
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              Next
-            </button>
-          )}
-          {isLastPage && (
-            <button
-              type="submit"
-              disabled={preview || submitting}
-              style={preview ? { opacity: 0.5, pointerEvents: "none" } : {}}
-            >
-              {submitting ? "Submitting..." : "Submit"}
-            </button>
-          )}
+          <h2>Thank you for your submission!</h2>
+          <p>We have received your response.</p>
         </div>
-      </form>
+      ) : (
+        <form
+          onSubmit={handleSubmit}
+          style={{
+            background: "#fff",
+            padding: 32,
+            borderRadius: 12,
+            minWidth: 340,
+            maxWidth: 480,
+            width: "100%",
+          }}
+        >
+          <h2
+            style={{
+              fontSize: 28,
+              fontWeight: 700,
+              marginBottom: 28,
+              textAlign: "center",
+              letterSpacing: "-0.01em",
+            }}
+          >
+            {title}
+          </h2>
+          {pages[pageIdx].map((node, idx) => {
+            if (isQuestionNode(node)) {
+              return (
+                <QuestionFormField
+                  key={node.attrs.id}
+                  node={node}
+                  value={form[node.attrs.id] || ""}
+                  onChange={handleChange}
+                />
+              );
+            }
+            if (isCodeBlockNode(node)) {
+              return <CodeBlockDisplay key={idx} node={node} />;
+            }
+            // Optionally handle paragraphs, etc.
+            return null;
+          })}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginTop: 24,
+            }}
+          >
+            {!isFirstPage && (
+              <button
+                type="button"
+                onClick={() => setPageIdx((idx) => Math.max(0, idx - 1))}
+                style={{
+                  padding: "10px 18px",
+                  borderRadius: 6,
+                  background: "#eee",
+                  color: "#333",
+                  fontWeight: 500,
+                  fontSize: 16,
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                Previous
+              </button>
+            )}
+            {!isLastPage && (
+              <button
+                type="button"
+                onClick={() =>
+                  setPageIdx((idx) => Math.min(pages.length - 1, idx + 1))
+                }
+                style={{
+                  marginLeft: isFirstPage ? 0 : 12,
+                  padding: "10px 18px",
+                  borderRadius: 6,
+                  background: "#222",
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: 16,
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                Next
+              </button>
+            )}
+            {isLastPage && (
+              <button
+                type="submit"
+                disabled={preview || submitting}
+                style={preview ? { opacity: 0.5, pointerEvents: "none" } : {}}
+              >
+                {submitting ? "Submitting..." : "Submit"}
+              </button>
+            )}
+          </div>
+        </form>
+      )}
     </div>
   );
 }
