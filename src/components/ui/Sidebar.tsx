@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { createForm } from "@/app/actions/form";
+import { useUser } from "@clerk/nextjs";
 
 interface SidebarProps {
   className?: string;
@@ -30,6 +31,7 @@ export function Sidebar({ className }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const { user } = useUser();
 
   const navigation = [
     {
@@ -244,16 +246,28 @@ export function Sidebar({ className }: SidebarProps) {
         >
           <div className="h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center flex-shrink-0">
             <span className="text-sidebar-accent-foreground font-medium text-sm">
-              JD
+              {/* Use initials from Clerk user or fallback */}
+              {user
+                ? (user.firstName?.[0] || "") + (user.lastName?.[0] || "")
+                : "JD"}
             </span>
           </div>
           {!isCollapsed && (
             <div className="ml-3 flex-1 min-w-0">
               <p className="text-sm font-medium text-sidebar-foreground truncate">
-                John Doe
+                {/* Use Clerk user full name or fallback */}
+                {user
+                  ? user.fullName ||
+                    user.username ||
+                    user.primaryEmailAddress?.emailAddress
+                  : "John Doe"}
               </p>
               <p className="text-xs text-muted-foreground truncate">
-                john@example.com
+                {/* Use Clerk user email or fallback */}
+                {user
+                  ? user.primaryEmailAddress?.emailAddress ||
+                    user.emailAddresses?.[0]?.emailAddress
+                  : "john@example.com"}
               </p>
             </div>
           )}
