@@ -76,7 +76,7 @@ export default async function ResponseDetailPage({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href={`/forms/${params.id}/responses`}>
+          <Link href={`/form/${params.id}/responses`}>
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Responses

@@ -1,3 +1,4 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,8 +16,12 @@ import {
   ArrowRight,
   Star,
 } from "lucide-react";
+import { useUser, SignInButton } from "@clerk/nextjs";
+import Link from "next/link";
 
 export default function HomePage() {
+  const { user } = useUser();
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -59,9 +64,19 @@ export default function HomePage() {
               </a>
             </nav>
 
-            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
-              Get Started
-            </Button>
+            {!user ? (
+              <SignInButton mode="modal">
+                <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                  Login
+                </Button>
+              </SignInButton>
+            ) : (
+              <Link href="/dashboard">
+                <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                  Dashboard
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </header>
