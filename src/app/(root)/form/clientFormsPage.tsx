@@ -16,11 +16,14 @@ import {
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { createForm } from "@/app/actions/form";
+import { useTransition } from "react";
 
 export default function ClientFormsPage({ initialForms }) {
   const [forms] = useState(initialForms);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("All");
+  const [isPending, startTransition] = useTransition();
 
   const filteredForms = forms.filter((form) => {
     const matchesSearch = form.title
@@ -38,6 +41,13 @@ export default function ClientFormsPage({ initialForms }) {
     toast.success("Form link copied!");
   };
 
+  const handleCreate = () => {
+    startTransition(async () => {
+      const form = await createForm();
+      router.push(`/form/${form.id}`);
+    });
+  };
+
   return (
     <div className="flex h-screen bg-background">
       <main className="flex-1 overflow-auto">
@@ -50,9 +60,13 @@ export default function ClientFormsPage({ initialForms }) {
                 Create and manage your forms
               </p>
             </div>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              onClick={handleCreate}
+              disabled={isPending}
+            >
               <Plus className="h-4 w-4 mr-2" />
-              Create Form
+              {isPending ? "Creating..." : "Create Form"}
             </Button>
           </div>
 
@@ -187,9 +201,13 @@ export default function ClientFormsPage({ initialForms }) {
                   ? "Try adjusting your search terms"
                   : "Get started by creating your first form"}
               </p>
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Button
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                onClick={handleCreate}
+                disabled={isPending}
+              >
                 <Plus className="h-4 w-4 mr-2" />
-                Create Your First Form
+                {isPending ? "Creating..." : "Create Your First Form"}
               </Button>
             </div>
           )}

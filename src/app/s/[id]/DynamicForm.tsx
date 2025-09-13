@@ -1,4 +1,4 @@
-"use client";
+import React from "react";
 import { useState } from "react";
 import QuestionFormField from "./QuestionFormField";
 import CodeBlockDisplay from "./CodeBlockDisplay";
@@ -143,6 +143,75 @@ export default function DynamicForm({
     setSubmitted(true);
   };
 
+  // Helper to render inline content with marks
+  function renderContent(content: any[]) {
+    if (!Array.isArray(content)) return null;
+    return content.map((node, i) => {
+      if (node.type === "text") {
+        let el: React.ReactNode = node.text;
+        if (node.marks) {
+          node.marks.forEach((mark: any) => {
+            if (mark.type === "bold") {
+              el = <strong key={`b${i}`}>{el}</strong>;
+            }
+            if (mark.type === "italic") {
+              el = <em key={`i${i}`}>{el}</em>;
+            }
+            if (mark.type === "underline") {
+              el = <u key={`u${i}`}>{el}</u>;
+            }
+            if (mark.type === "strike") {
+              el = <s key={`s${i}`}>{el}</s>;
+            }
+            if (mark.type === "code") {
+              el = <code key={`c${i}`}>{el}</code>;
+            }
+            if (mark.type === "highlight") {
+              el = (
+                <span
+                  key={`h${i}`}
+                  style={{
+                    background: mark.attrs?.color || "#ffe066",
+                    borderRadius: 2,
+                    padding: "0 2px",
+                  }}
+                >
+                  {el}
+                </span>
+              );
+            }
+            if (mark.type === "link") {
+              el = (
+                <a
+                  key={`l${i}`}
+                  href={mark.attrs?.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "#2563eb", textDecoration: "underline" }}
+                >
+                  {el}
+                </a>
+              );
+            }
+            if (mark.type === "subscript") {
+              el = <sub key={`sub${i}`}>{el}</sub>;
+            }
+            if (mark.type === "superscript") {
+              el = <sup key={`sup${i}`}>{el}</sup>;
+            }
+          });
+        }
+        return <React.Fragment key={i}>{el}</React.Fragment>;
+      }
+      // If nested content (e.g., for hard breaks, inline images, etc.)
+      if (node.type === "hardBreak") {
+        return <br key={i} />;
+      }
+      // Add more inline node types as needed
+      return null;
+    });
+  }
+
   return (
     <div
       style={{
@@ -205,7 +274,121 @@ export default function DynamicForm({
             if (isCodeBlockNode(node)) {
               return <CodeBlockDisplay key={idx} node={node} />;
             }
-            // Optionally handle paragraphs, etc.
+            if (isParagraphNode(node)) {
+              if (!node.content) return null;
+              return (
+                <p
+                  key={idx}
+                  style={{
+                    textAlign: node.attrs?.textAlign || "left",
+                    margin: "12px 0",
+                    color: "#444",
+                  }}
+                >
+                  {renderContent(node.content)}
+                </p>
+              );
+            }
+            // Handle headings
+            if (node.type && node.type.startsWith("heading")) {
+              const level = node.attrs?.level || 1;
+              if (!node.content) return null;
+              const Tag = `h${level}` as keyof JSX.IntrinsicElements;
+              return (
+                <Tag
+                  key={idx}
+                  style={{
+                    margin: "18px 0 8px 0",
+                    fontWeight: 700,
+                    fontSize: 20 + (6 - Math.min(level, 6)) * 2,
+                  }}
+                >
+                  {renderContent(node.content)}
+                </Tag>
+              );
+            }
+            // Handle images
+            if (node.type === "image" && node.attrs?.src) {
+              return (
+                <img
+                  key={idx}
+                  src={node.attrs.src}
+                  alt={node.attrs.alt || ""}
+                  style={{
+                    maxWidth: "100%",
+                    margin: "16px 0",
+                    borderRadius: 8,
+                  }}
+                />
+              );
+            }
+            // Handle blockquotes
+            if (node.type === "blockquote") {
+              if (!node.content) return null;
+              return (
+                <blockquote
+                  key={idx}
+                  style={{
+                    borderLeft: "4px solid #ddd",
+                    margin: "12px 0",
+                    padding: "8px 16px",
+                    color: "#666",
+                    fontStyle: "italic",
+                    background: "#fafafa",
+                  }}
+                >
+                  {renderContent(node.content)}
+                </blockquote>
+              );
+            }
+            // Handle horizontal rule
+            if (node.type === "horizontalRule") {
+              return <hr key={idx} style={{ margin: "18px 0" }} />;
+            }
+            // Handle lists (bullet and ordered)
+            if (node.type === "bulletList" || node.type === "orderedList") {
+              const isOrdered = node.type === "orderedList";
+              const items = Array.isArray(node.content) ? node.content : [];
+              return isOrdered ? (
+                <ol key={idx} style={{ margin: "12px 0 12px 24px" }}>
+                  {items.map((li: any, liIdx: number) => (
+                    <li key={liIdx}>{renderContent(li.content)}</li>
+                  ))}
+                </ol>
+              ) : (
+                <ul key={idx} style={{ margin: "12px 0 12px 24px" }}>
+                  {items.map((li: any, liIdx: number) => (
+                    <li key={liIdx}>{renderContent(li.content)}</li>
+                  ))}
+                </ul>
+              );
+            }
+            // Handle task lists (checkbox lists)
+            if (node.type === "taskList") {
+              const items = Array.isArray(node.content) ? node.content : [];
+              return (
+                <ul
+                  key={idx}
+                  style={{
+                    margin: "12px 0 12px 24px",
+                    listStyle: "none",
+                    padding: 0,
+                  }}
+                >
+                  {items.map((li: any, liIdx: number) => (
+                    <li key={liIdx}>
+                      <input
+                        type="checkbox"
+                        checked={!!li.attrs?.checked}
+                        readOnly
+                      />{" "}
+                      {renderContent(li.content)}
+                    </li>
+                  ))}
+                </ul>
+              );
+            }
+            // Optionally handle more node types as needed...
             return null;
           })}
           <div
