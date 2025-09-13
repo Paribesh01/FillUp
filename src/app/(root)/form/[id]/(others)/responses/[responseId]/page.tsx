@@ -19,7 +19,7 @@ export default async function ResponseDetailPage({
 }: {
   params: { id: string; responseId: string };
 }) {
-  const submission = await getSubmissionById(params.responseId);
+  const submission: any = await getSubmissionById(params.responseId);
 
   console.log("----", submission?.content);
 
@@ -39,7 +39,7 @@ export default async function ResponseDetailPage({
       userAgent: "N/A",
     },
     fields: Array.isArray(submission.content)
-      ? submission.content.map((field) => ({
+      ? submission.content.map((field: any) => ({
           id: field.id,
           label: field.question,
           type: field.type,
@@ -146,7 +146,7 @@ export default async function ResponseDetailPage({
               Form Responses
             </h3>
             <div className="space-y-6">
-              {response.fields.map((field) => (
+              {response.fields.map((field: any) => (
                 <div
                   key={field.id}
                   className="border-b border-border pb-4 last:border-b-0 last:pb-0"

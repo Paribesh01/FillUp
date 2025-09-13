@@ -13,7 +13,7 @@ export default async function FormResponsesPage({
   const submissions = await getAllSubmissionsForForm(params.id);
 
   // Map submissions to the structure expected by your table
-  const responses = submissions.map((submission: any) => ({
+  const responses = (submissions as any[]).map((submission: any) => ({
     id: submission.id,
     submittedAt: submission.createdAt,
     email: submission.userId, // You may want to join with user table for real email
@@ -71,7 +71,7 @@ export default async function FormResponsesPage({
               </tr>
             </thead>
             <tbody>
-              {responses.map((response) => (
+              {responses.map((response: any) => (
                 <tr
                   key={response.id}
                   className="border-b border-border last:border-b-0 hover:bg-muted/50"

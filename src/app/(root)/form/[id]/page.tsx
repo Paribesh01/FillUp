@@ -13,5 +13,5 @@ export default async function FormPage({ params }: { params: { id: string } }) {
 
   if (!doc) return <div>Form not found</div>;
 
-  return <SimpleEditor docId={doc.id} initialContent={doc.content} />;
+  return <SimpleEditor docId={doc.id} initialContent={doc.content as any} />;
 }

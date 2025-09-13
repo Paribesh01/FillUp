@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { useState } from "react";
 import QuestionFormField from "./QuestionFormField";
@@ -60,13 +61,16 @@ export default function DynamicForm({
   }
 
   // Type guard for paragraph nodes
-  function isParagraphNode(
-    node: unknown
-  ): node is { type: "paragraph"; attrs: { textAlign: string | null } } {
+  function isParagraphNode(node: unknown): node is {
+    type: "paragraph";
+    attrs: { textAlign: string | null };
+    content: any[];
+  } {
     return (
       typeof node === "object" &&
       node !== null &&
-      (node as { type?: unknown }).type === "paragraph"
+      (node as { type?: unknown }).type === "paragraph" &&
+      Array.isArray((node as any).content)
     );
   }
 
@@ -79,13 +83,85 @@ export default function DynamicForm({
     );
   }
 
+  function isHeadingNode(
+    node: unknown
+  ): node is { type: string; attrs: { level?: number }; content: any[] } {
+    return (
+      typeof node === "object" &&
+      node !== null &&
+      typeof (node as any).type === "string" &&
+      (node as any).type.startsWith("heading") &&
+      typeof (node as any).attrs === "object" &&
+      Array.isArray((node as any).content)
+    );
+  }
+
+  function isImageNode(
+    node: unknown
+  ): node is { type: "image"; attrs: { src: string; alt?: string } } {
+    return (
+      typeof node === "object" &&
+      node !== null &&
+      (node as any).type === "image" &&
+      typeof (node as any).attrs === "object" &&
+      typeof (node as any).attrs.src === "string"
+    );
+  }
+
+  function isBlockquoteNode(
+    node: unknown
+  ): node is { type: "blockquote"; content: any[] } {
+    return (
+      typeof node === "object" &&
+      node !== null &&
+      (node as any).type === "blockquote" &&
+      Array.isArray((node as any).content)
+    );
+  }
+
+  function isHorizontalRuleNode(
+    node: unknown
+  ): node is { type: "horizontalRule" } {
+    return (
+      typeof node === "object" &&
+      node !== null &&
+      (node as any).type === "horizontalRule"
+    );
+  }
+
+  function isListNode(
+    node: unknown
+  ): node is { type: "bulletList" | "orderedList"; content: any[] } {
+    return (
+      typeof node === "object" &&
+      node !== null &&
+      ((node as any).type === "bulletList" ||
+        (node as any).type === "orderedList") &&
+      Array.isArray((node as any).content)
+    );
+  }
+
+  function isTaskListNode(
+    node: unknown
+  ): node is { type: "taskList"; content: any[] } {
+    return (
+      typeof node === "object" &&
+      node !== null &&
+      (node as any).type === "taskList" &&
+      Array.isArray((node as any).content)
+    );
+  }
+
   const contentArray = Array.isArray(docContent.content)
     ? docContent.content
     : [];
   const questions = contentArray.filter(isQuestionNode);
   const [form, setForm] = useState<{ [id: string]: string | string[] }>(
     Object.fromEntries(
-      questions.map((q) => [q.attrs.id, q.attrs.type === "checkbox" ? [] : ""])
+      questions.map((q: any) => [
+        q.attrs.id,
+        q.attrs.type === "checkbox" ? [] : "",
+      ])
     )
   );
   const [submitting, setSubmitting] = useState(false);
@@ -95,7 +171,7 @@ export default function DynamicForm({
   // Split content into pages by nextPage nodes
   const pages: unknown[][] = [];
   let currentPage: unknown[] = [];
-  contentArray.forEach((node) => {
+  contentArray.forEach((node: any) => {
     if (isNextPageNode(node)) {
       pages.push(currentPage);
       currentPage = [];
@@ -123,7 +199,7 @@ export default function DynamicForm({
     setSubmitting(true);
 
     // Build the array of answers with all relevant fields
-    const content = questions.map((q) => ({
+    const content = questions.map((q: any) => ({
       id: q.attrs.id,
       type: q.attrs.type,
       question: q.attrs.label,
@@ -280,7 +356,7 @@ export default function DynamicForm({
                 <p
                   key={idx}
                   style={{
-                    textAlign: node.attrs?.textAlign || "left",
+                    textAlign: node.attrs?.textAlign || ("left" as any),
                     margin: "12px 0",
                     color: "#444",
                   }}
@@ -290,10 +366,10 @@ export default function DynamicForm({
               );
             }
             // Handle headings
-            if (node.type && node.type.startsWith("heading")) {
-              const level = node.attrs?.level || 1;
+            if (isHeadingNode(node)) {
+              const level = node.attrs.level || 1;
               if (!node.content) return null;
-              const Tag = `h${level}` as keyof JSX.IntrinsicElements;
+              const Tag = `h${level}` as any;
               return (
                 <Tag
                   key={idx}
@@ -308,7 +384,7 @@ export default function DynamicForm({
               );
             }
             // Handle images
-            if (node.type === "image" && node.attrs?.src) {
+            if (isImageNode(node)) {
               return (
                 <img
                   key={idx}
@@ -323,7 +399,7 @@ export default function DynamicForm({
               );
             }
             // Handle blockquotes
-            if (node.type === "blockquote") {
+            if (isBlockquoteNode(node)) {
               if (!node.content) return null;
               return (
                 <blockquote
@@ -342,13 +418,13 @@ export default function DynamicForm({
               );
             }
             // Handle horizontal rule
-            if (node.type === "horizontalRule") {
+            if (isHorizontalRuleNode(node)) {
               return <hr key={idx} style={{ margin: "18px 0" }} />;
             }
             // Handle lists (bullet and ordered)
-            if (node.type === "bulletList" || node.type === "orderedList") {
+            if (isListNode(node)) {
               const isOrdered = node.type === "orderedList";
-              const items = Array.isArray(node.content) ? node.content : [];
+              const items = node.content;
               return isOrdered ? (
                 <ol key={idx} style={{ margin: "12px 0 12px 24px" }}>
                   {items.map((li: any, liIdx: number) => (
@@ -364,8 +440,8 @@ export default function DynamicForm({
               );
             }
             // Handle task lists (checkbox lists)
-            if (node.type === "taskList") {
-              const items = Array.isArray(node.content) ? node.content : [];
+            if (isTaskListNode(node)) {
+              const items = node.content;
               return (
                 <ul
                   key={idx}

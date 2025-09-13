@@ -4,6 +4,10 @@ export default function MultipleChoiceQuestionNode({
   node,
   updateAttributes,
   selected,
+}: {
+  node: any;
+  updateAttributes: (attrs: any) => void;
+  selected: boolean;
 }) {
   const attrs = node.attrs;
 
@@ -20,11 +24,11 @@ export default function MultipleChoiceQuestionNode({
     // eslint-disable-next-line
   }, []);
 
-  const handleLabelChange = (e) => {
+  const handleLabelChange = (e: any) => {
     updateAttributes({ label: e.target.value });
   };
 
-  const handleOptionChange = (idx, value) => {
+  const handleOptionChange = (idx: number, value: string) => {
     const newOptions = [...(attrs.options || [])];
     newOptions[idx] = value;
     updateAttributes({ options: newOptions });
@@ -36,9 +40,11 @@ export default function MultipleChoiceQuestionNode({
     });
   };
 
-  const handleRemoveOption = (idx) => {
-    const newOptions = (attrs.options || []).filter((_, i) => i !== idx);
-    updateAttributes({ options: newOptions });
+  const handleRemoveOption = (idx: number) => {
+    const newOptions = (attrs.options || []).filter(
+      (_: any, i: number) => i !== idx
+    );
+    updateAttributes({ options: newOptions as string[] });
   };
 
   const options = attrs.options || [];
@@ -58,7 +64,7 @@ export default function MultipleChoiceQuestionNode({
         style={{ width: "100%", marginBottom: 8, fontWeight: 600 }}
       />
       <div>
-        {options.map((option, idx) => (
+        {options.map((option: string, idx: number) => (
           <div
             key={idx}
             style={{ display: "flex", alignItems: "center", marginBottom: 4 }}

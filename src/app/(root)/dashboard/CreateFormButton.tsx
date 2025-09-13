@@ -14,7 +14,7 @@ export default function CreateFormButton() {
   const handleCreate = () => {
     startTransition(async () => {
       try {
-        const form = await createForm();
+        const form: any = await createForm();
         toast.success("Form created!");
         router.push(`/form/${form.id}`);
       } catch (error) {

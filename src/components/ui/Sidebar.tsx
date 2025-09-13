@@ -80,7 +80,7 @@ export function Sidebar({ className }: SidebarProps) {
   // Add this handler for creating a form and redirecting
   const handleCreate = () => {
     startTransition(async () => {
-      const form = await createForm();
+      const form: any = await createForm();
       router.push(`/form/${form.id}`);
     });
   };

@@ -19,13 +19,17 @@ import { toast } from "sonner";
 import { createForm } from "@/app/actions/form";
 import { useTransition } from "react";
 
-export default function ClientFormsPage({ initialForms }) {
+export default function ClientFormsPage({
+  initialForms,
+}: {
+  initialForms: any;
+}) {
   const [forms] = useState(initialForms);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [isPending, startTransition] = useTransition();
 
-  const filteredForms = forms.filter((form) => {
+  const filteredForms = forms.filter((form: any) => {
     const matchesSearch = form.title
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
@@ -36,14 +40,14 @@ export default function ClientFormsPage({ initialForms }) {
   });
   const router = useRouter();
 
-  const handleCopy = (formId) => {
+  const handleCopy = (formId: string) => {
     navigator.clipboard.writeText(`${window.location.origin}/s/${formId}`);
     toast.success("Form link copied!");
   };
 
   const handleCreate = () => {
     startTransition(async () => {
-      const form = await createForm();
+      const form: any = await createForm();
       router.push(`/form/${form.id}`);
     });
   };
@@ -98,7 +102,7 @@ export default function ClientFormsPage({ initialForms }) {
 
           {/* Forms Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredForms.map((form) => (
+            {filteredForms.map((form: any) => (
               <div
                 key={form.id}
                 className="bg-card border border-border rounded-lg p-6 hover:shadow-md transition-shadow"
