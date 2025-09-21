@@ -11,6 +11,8 @@ type QuestionNodeAttrs = {
   answer: string;
   placeholder: string;
   options?: string[];
+  required?: boolean; // <-- add this
+  defaultAnswer?: string; // <-- add this (or string[] for checkbox)
 };
 
 type Node =
@@ -160,7 +162,11 @@ export default function DynamicForm({
     Object.fromEntries(
       questions.map((q: any) => [
         q.attrs.id,
-        q.attrs.type === "checkbox" ? [] : "",
+        q.attrs.type === "checkbox"
+          ? Array.isArray(q.attrs.defaultAnswer)
+            ? q.attrs.defaultAnswer
+            : []
+          : q.attrs.defaultAnswer ?? "",
       ])
     )
   );
@@ -197,6 +203,22 @@ export default function DynamicForm({
     }
     e.preventDefault();
     setSubmitting(true);
+
+    // Validate required fields
+    for (const q of questions) {
+      if (q.attrs.required) {
+        const val = form[q.attrs.id];
+        const isEmpty =
+          q.attrs.type === "checkbox"
+            ? !Array.isArray(val) || val.length === 0
+            : !val || val === "";
+        if (isEmpty) {
+          alert(`Please answer the required question: "${q.attrs.label}"`);
+          setSubmitting(false); // Reset submitting state
+          return;
+        }
+      }
+    }
 
     // Build the array of answers with all relevant fields
     const content = questions.map((q: any) => ({
@@ -344,6 +366,8 @@ export default function DynamicForm({
                   node={node}
                   value={form[node.attrs.id] || ""}
                   onChange={handleChange}
+                  required={!!node.attrs.required}
+                  defaultAnswer={node.attrs.defaultAnswer}
                 />
               );
             }

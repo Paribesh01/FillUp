@@ -7,16 +7,21 @@ type QuestionNodeAttrs = {
   answer: string;
   placeholder: string;
   options?: string[];
+  defaultAnswer?: string | string[];
 };
 
 export default function QuestionFormField({
   node,
   value,
   onChange,
+  required = false,
+  defaultAnswer,
 }: {
   node: { attrs: QuestionNodeAttrs };
   value: string | string[];
   onChange: (id: string, value: string | string[]) => void;
+  required?: boolean;
+  defaultAnswer?: string | string[];
 }) {
   const { id, type, label, placeholder, options } = node.attrs;
 
@@ -37,15 +42,22 @@ export default function QuestionFormField({
         }}
       >
         {label}
+        {required && <span style={{ color: "red", marginLeft: 4 }}>*</span>}
       </label>
       {type === "short" ? (
         <input
           type="text"
           className="block w-full border border-gray-300 rounded px-2 py-1 text-base"
-          value={typeof value === "string" ? value : ""}
+          value={
+            typeof value === "string" && value !== ""
+              ? value
+              : typeof defaultAnswer === "string"
+              ? defaultAnswer
+              : ""
+          }
           placeholder={placeholder}
           onChange={(e) => onChange(id, e.target.value)}
-          required
+          required={required}
           style={{ marginTop: 4 }}
         />
       ) : type === "long" ? (
@@ -54,7 +66,7 @@ export default function QuestionFormField({
           value={typeof value === "string" ? value : ""}
           placeholder={placeholder}
           onChange={(e) => onChange(id, e.target.value)}
-          required
+          required={required}
           rows={3}
           style={{ marginTop: 4 }}
         />
@@ -69,10 +81,12 @@ export default function QuestionFormField({
                 type="radio"
                 name={id}
                 value={option}
-                checked={value === option}
+                checked={
+                  value === option || (value === "" && defaultAnswer === option)
+                }
                 onChange={() => onChange(id, option)}
                 style={{ marginRight: 8 }}
-                required
+                required={required}
               />
               {option}
             </label>
@@ -81,7 +95,11 @@ export default function QuestionFormField({
       ) : type === "checkbox" && options && options.length > 0 ? (
         <div style={{ marginTop: 4 }}>
           {options.map((option, idx) => {
-            const checked = Array.isArray(value) && value.includes(option);
+            const checked =
+              (Array.isArray(value) && value.includes(option)) ||
+              (Array.isArray(defaultAnswer) &&
+                value.length === 0 &&
+                defaultAnswer.includes(option));
             return (
               <label
                 key={idx}

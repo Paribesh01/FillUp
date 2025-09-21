@@ -5,9 +5,13 @@ import { createPortal } from "react-dom";
 export function QuestionNodeWrapper({
   children,
   onOpenSettings,
+  node,
+  updateAttributes,
 }: {
   children: React.ReactNode;
   onOpenSettings: () => void;
+  node?: any;
+  updateAttributes?: (attrs: any) => void;
 }) {
   const nodeRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -16,6 +20,7 @@ export function QuestionNodeWrapper({
     left: number;
   } | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const settingsRef = useRef<HTMLDivElement>(null);
 
   // Handler to set the drag image to the whole node
   const handleDragStart = (event: React.DragEvent) => {
@@ -45,7 +50,13 @@ export function QuestionNodeWrapper({
   React.useEffect(() => {
     if (!open) return;
     const handleClick = (e: MouseEvent) => {
-      if (buttonRef.current && !buttonRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        buttonRef.current &&
+        !buttonRef.current.contains(target) &&
+        settingsRef.current &&
+        !settingsRef.current.contains(target)
+      ) {
         setOpen(false);
       }
     };
@@ -86,6 +97,7 @@ export function QuestionNodeWrapper({
       <div className="flex-1">{children}</div>
       {open && position && (
         <div
+          ref={settingsRef}
           style={{
             position: "absolute",
             top: position.top,
@@ -94,14 +106,38 @@ export function QuestionNodeWrapper({
             border: "1px solid #ccc",
             borderRadius: 4,
             boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-            padding: 8,
+            padding: 12,
             zIndex: 1000,
-            minWidth: 180,
+            minWidth: 220,
           }}
         >
-          <div>Random Data 1</div>
-          <div>Random Data 2</div>
-          <div>Random Data 3</div>
+          <h4 style={{ margin: "0 0 12px 0", fontWeight: 600, fontSize: 16 }}>
+            Question Settings
+          </h4>
+          <label style={{ display: "block", marginBottom: 10 }}>
+            <input
+              type="checkbox"
+              checked={!!node?.attrs.required}
+              onChange={(e) => {
+                console.log("Checkbox changed", e.target.checked);
+                updateAttributes?.({ required: e.target.checked });
+              }}
+              style={{ marginRight: 6 }}
+            />
+            Required
+          </label>
+          <label style={{ display: "block" }}>
+            Default Answer:
+            <input
+              type="text"
+              value={node?.attrs.defaultAnswer || ""}
+              onChange={(e) => {
+                console.log("Default answer changed", e.target.value);
+                updateAttributes?.({ defaultAnswer: e.target.value });
+              }}
+              style={{ width: "100%", marginTop: 4 }}
+            />
+          </label>
         </div>
       )}
     </div>

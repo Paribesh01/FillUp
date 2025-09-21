@@ -16,7 +16,11 @@ export default function QuestionNodeComponent({
   };
 
   return (
-    <QuestionNodeWrapper onOpenSettings={openSettings}>
+    <QuestionNodeWrapper
+      node={node}
+      updateAttributes={updateAttributes}
+      onOpenSettings={openSettings}
+    >
       <input
         type="text"
         className="block w-full text-lg font-medium mb-2 bg-transparent border-none focus:ring-0 p-0 no-border"

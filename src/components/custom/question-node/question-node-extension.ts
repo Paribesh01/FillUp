@@ -21,6 +21,8 @@ export interface QuestionNodeAttrs {
     placeholder?: string;
     answer?: string;
     options?: string[];
+    required?: boolean;
+    defaultAnswer?: string;
 }
 
 export const QuestionNode = Node.create<QuestionNodeOptions>({
@@ -71,6 +73,20 @@ export const QuestionNode = Node.create<QuestionNodeOptions>({
                 renderHTML: attrs => (
                     attrs.options ? { 'data-options': JSON.stringify(attrs.options) } : {}
                 ),
+            },
+            required: {
+                default: false,
+                parseHTML: element => element.getAttribute("data-required") === "true",
+                renderHTML: attributes => ({
+                    "data-required": attributes.required ? "true" : "false",
+                }),
+            },
+            defaultAnswer: {
+                default: "",
+                parseHTML: element => element.getAttribute("data-default-answer") || "",
+                renderHTML: attributes => ({
+                    "data-default-answer": attributes.defaultAnswer || "",
+                }),
             },
         };
     },
