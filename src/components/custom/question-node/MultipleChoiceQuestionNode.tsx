@@ -1,4 +1,6 @@
 import React, { useEffect } from "react";
+import { DragHandleButton } from "../DragHandleButton"; // adjust path
+import { QuestionNodeWrapper } from "./questionNodeWrapper";
 
 export default function MultipleChoiceQuestionNode({
   node,
@@ -49,53 +51,67 @@ export default function MultipleChoiceQuestionNode({
 
   const options = attrs.options || [];
 
+  const openSettings = () => {
+    updateAttributes({ openSettings: true });
+  };
+
   return (
-    <div
-      style={{
-        padding: 12,
-        borderRadius: 8,
-        margin: 8,
-      }}
-    >
-      <input
-        value={attrs.label || ""}
-        onChange={handleLabelChange}
-        placeholder="Question label"
-        style={{ width: "100%", marginBottom: 8, fontWeight: 600 }}
-      />
-      <div>
-        {options.map((option: string, idx: number) => (
-          <div
-            key={idx}
-            style={{ display: "flex", alignItems: "center", marginBottom: 4 }}
-          >
-            <input
-              value={option}
-              onChange={(e) => handleOptionChange(idx, e.target.value)}
-              placeholder={`Option ${idx + 1}`}
-              style={{
-                flex: 1,
-                border: selected ? "2px solid #0070f3" : "1px solid #ccc",
-              }}
-            />
-            <button
-              type="button"
-              onClick={() => handleRemoveOption(idx)}
-              disabled={options.length <= 1}
-              style={{ marginLeft: 8 }}
+    <QuestionNodeWrapper onOpenSettings={openSettings}>
+      <div style={{ width: "100%" }}>
+        <input
+          value={attrs.label || ""}
+          onChange={handleLabelChange}
+          placeholder="Question label"
+          style={{ width: "100%", marginBottom: 8, fontWeight: 600 }}
+        />
+        <div>
+          {(attrs.options || []).map((option: string, idx: number) => (
+            <div
+              key={idx}
+              style={{ display: "flex", alignItems: "center", marginBottom: 4 }}
             >
-              Remove
-            </button>
-          </div>
-        ))}
-        <button
-          type="button"
-          onClick={handleAddOption}
-          style={{ marginTop: 6 }}
-        >
-          Add Option
-        </button>
+              <input
+                value={option}
+                onChange={(e) =>
+                  updateAttributes({
+                    options: [
+                      ...(attrs.options || []).slice(0, idx),
+                      e.target.value,
+                      ...(attrs.options || []).slice(idx + 1),
+                    ],
+                  })
+                }
+                placeholder={`Option ${idx + 1}`}
+                style={{
+                  flex: 1,
+                  border: selected ? "2px solid #0070f3" : "1px solid #ccc",
+                }}
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  updateAttributes({
+                    options: (attrs.options || []).filter(
+                      (_: any, i: number) => i !== idx
+                    ),
+                  })
+                }
+                disabled={(attrs.options || []).length <= 1}
+                style={{ marginLeft: 8 }}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={handleAddOption}
+            style={{ marginTop: 6 }}
+          >
+            Add Option
+          </button>
+        </div>
       </div>
-    </div>
+    </QuestionNodeWrapper>
   );
 }

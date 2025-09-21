@@ -1,0 +1,8 @@
+.question-node .drag-handle-visibility {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.question-node.group:hover .drag-handle-visibility,
+.question-node.group:focus-within .drag-handle-visibility {
+  opacity: 1;
+}

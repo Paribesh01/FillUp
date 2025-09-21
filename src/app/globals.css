@@ -61,7 +61,7 @@
   }
 }
 
-/* Show a visible :: drag handle on the left of each draggable block */
+/* Show a visible :: drag handle on the left of each draggable block
 .drag-handle {
   cursor: grab;
   user-select: none;
@@ -77,7 +77,7 @@
   content: "::";
   font-weight: bold;
   letter-spacing: 2px;
-}
+} */
 
 body {
   background: var(--background);
@@ -210,4 +210,18 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Add this to your global CSS or a relevant SCSS file */
+.custom-drag-handle {
+  cursor: grab;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  margin-right: 8px;
+  color: #aaa;
+  font-size: 1.2em;
+  padding: 0 4px;
+  font-weight: bold;
+  letter-spacing: 2px;
 }

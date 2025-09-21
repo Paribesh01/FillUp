@@ -1,5 +1,8 @@
 import React from "react";
 import { NodeViewWrapper, NodeViewProps } from "@tiptap/react";
+import { DragHandleButton } from "../DragHandleButton"; // adjust path if needed
+import { QuestionNodeWrapper } from "./questionNodeWrapper";
+import "./question-node.css"; // (create this file for styles if not present)
 
 export default function QuestionNodeComponent({
   node,
@@ -8,12 +11,12 @@ export default function QuestionNodeComponent({
 }: NodeViewProps) {
   const { label, type, placeholder } = node.attrs;
 
+  const openSettings = () => {
+    updateAttributes({ openSettings: true });
+  };
+
   return (
-    <NodeViewWrapper
-      className={`question-node rounded-md p-4 my-4 bg-white`}
-      style={{ minWidth: 240 }}
-    >
-      {/* Editable label (question prompt) */}
+    <QuestionNodeWrapper onOpenSettings={openSettings}>
       <input
         type="text"
         className="block w-full text-lg font-medium mb-2 bg-transparent border-none focus:ring-0 p-0 no-border"
@@ -22,7 +25,6 @@ export default function QuestionNodeComponent({
         onChange={(e) => updateAttributes({ label: e.target.value })}
       />
 
-      {/* Placeholder input for the creator to set the placeholder text */}
       {type === "short" && (
         <input
           type="text"
@@ -41,6 +43,6 @@ export default function QuestionNodeComponent({
           rows={3}
         />
       )}
-    </NodeViewWrapper>
+    </QuestionNodeWrapper>
   );
 }

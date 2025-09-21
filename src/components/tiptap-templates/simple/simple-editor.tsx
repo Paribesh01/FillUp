@@ -14,7 +14,6 @@ import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
 import { Selection } from "@tiptap/extensions";
 import { Placeholder } from "@tiptap/extensions";
-import DragHandle from "@tiptap/extension-drag-handle";
 
 // --- Tiptap Node ---
 import { ImageUploadNode } from "@/components/tiptap-node/image-upload-node/image-upload-node-extension";
@@ -65,6 +64,7 @@ export function SimpleEditor({
   const [saved, setSaved] = useState(false);
   const [published, setPublished] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Fetch the title and published state on mount
   useEffect(() => {
@@ -139,9 +139,6 @@ export function SimpleEditor({
         placeholder: "Use / command to ...",
         showOnlyWhenEditable: true,
         showOnlyCurrent: false,
-      }),
-      DragHandle.configure({
-        // handle: '<span>::</span>', // optional
       }),
     ],
   });
@@ -308,6 +305,21 @@ export function SimpleEditor({
           </div>
         </>
       )}
+      {settingsOpen && (
+        <YourSettingsDialog onClose={() => setSettingsOpen(false)} />
+      )}
     </>
+  );
+}
+
+function YourSettingsDialog({ onClose }: any) {
+  return (
+    <div className="modal-backdrop">
+      <div className="modal">
+        <h2>Settings</h2>
+        {/* Your settings content here */}
+        <button onClick={onClose}>Close</button>
+      </div>
+    </div>
   );
 }

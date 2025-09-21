@@ -1,4 +1,6 @@
 import React, { useEffect } from "react";
+import { DragHandleButton } from "../DragHandleButton"; // adjust path
+import { QuestionNodeWrapper } from "./questionNodeWrapper";
 
 export default function CheckboxQuestionNode({
   node,
@@ -53,61 +55,85 @@ export default function CheckboxQuestionNode({
     updateAttributes({ answer: JSON.stringify(newAnswer) });
   };
 
+  const openSettings = () => {
+    updateAttributes({ openSettings: true });
+  };
+
   return (
-    <div
-      style={{
-        padding: 12,
-        borderRadius: 8,
-        margin: 8,
-      }}
-    >
-      <input
-        value={attrs.label || ""}
-        onChange={handleLabelChange}
-        placeholder="Question label"
-        style={{ width: "100%", marginBottom: 8, fontWeight: 600 }}
-        className="block w-full text-lg font-medium mb-2 bg-transparent border-none focus:ring-0 p-0 no-border"
-      />
-      <div>
-        {options.map((option: string, idx: number) => (
-          <div
-            key={idx}
-            style={{ display: "flex", alignItems: "center", marginBottom: 4 }}
-          >
-            <input
-              type="checkbox"
-              checked={answer.includes(option)}
-              onChange={() => handleCheckboxChange(option)}
-              style={{ marginRight: 8 }}
-            />
-            <input
-              value={option}
-              onChange={(e) => handleOptionChange(idx, e.target.value)}
-              placeholder={`Option ${idx + 1}`}
-              style={{
-                flex: 1,
-                border: selected ? "2px solid #0070f3" : "1px solid #ccc",
-                marginRight: 8,
-              }}
-            />
-            <button
-              type="button"
-              onClick={() => handleRemoveOption(idx)}
-              disabled={options.length <= 1}
-              style={{ marginLeft: 4 }}
+    <QuestionNodeWrapper onOpenSettings={openSettings}>
+      <div style={{ width: "100%" }}>
+        <input
+          value={attrs.label || ""}
+          onChange={(e) => updateAttributes({ label: e.target.value })}
+          placeholder="Question label"
+          style={{ width: "100%", marginBottom: 8, fontWeight: 600 }}
+          className="block w-full text-lg font-medium mb-2 bg-transparent border-none focus:ring-0 p-0 no-border"
+        />
+        <div>
+          {options.map((option: string, idx: number) => (
+            <div
+              key={idx}
+              style={{ display: "flex", alignItems: "center", marginBottom: 4 }}
             >
-              Remove
-            </button>
-          </div>
-        ))}
-        <button
-          type="button"
-          onClick={handleAddOption}
-          style={{ marginTop: 6 }}
-        >
-          Add Option
-        </button>
+              <input
+                type="checkbox"
+                checked={answer.includes(option)}
+                onChange={() => {
+                  let newAnswer: string[];
+                  if (answer.includes(option)) {
+                    newAnswer = answer.filter((a) => a !== option);
+                  } else {
+                    newAnswer = [...answer, option];
+                  }
+                  updateAttributes({ answer: JSON.stringify(newAnswer) });
+                }}
+                style={{ marginRight: 8 }}
+              />
+              <input
+                value={option}
+                onChange={(e) =>
+                  updateAttributes({
+                    options: [
+                      ...options.slice(0, idx),
+                      e.target.value,
+                      ...options.slice(idx + 1),
+                    ],
+                  })
+                }
+                placeholder={`Option ${idx + 1}`}
+                style={{
+                  flex: 1,
+                  border: selected ? "2px solid #0070f3" : "1px solid #ccc",
+                  marginRight: 8,
+                }}
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  updateAttributes({
+                    options: options.filter((_, i) => i !== idx),
+                  })
+                }
+                disabled={options.length <= 1}
+                style={{ marginLeft: 4 }}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() =>
+              updateAttributes({
+                options: [...options, `Option ${options.length + 1}`],
+              })
+            }
+            style={{ marginTop: 6 }}
+          >
+            Add Option
+          </button>
+        </div>
       </div>
-    </div>
+    </QuestionNodeWrapper>
   );
 }
