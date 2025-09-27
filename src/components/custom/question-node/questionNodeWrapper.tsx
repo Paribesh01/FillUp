@@ -7,7 +7,8 @@ export function QuestionNodeWrapper({
   onOpenSettings,
   node,
   updateAttributes,
-}: {
+}: // Removed onDragOver, onDrop from props
+{
   children: React.ReactNode;
   onOpenSettings: () => void;
   node?: any;
@@ -22,11 +23,12 @@ export function QuestionNodeWrapper({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const settingsRef = useRef<HTMLDivElement>(null);
 
-  // Handler to set the drag image to the whole node
+  // Optional: Only for custom drag image
   const handleDragStart = (event: React.DragEvent) => {
     if (nodeRef.current) {
       event.dataTransfer.setDragImage(nodeRef.current, 30, 10);
     }
+    // Do NOT set custom data unless you handle drop yourself
   };
 
   // Toggle menu and set position next to drag handle
@@ -68,15 +70,16 @@ export function QuestionNodeWrapper({
     <div
       className="question-node flex items-start group relative"
       ref={nodeRef}
+      // Removed onDragOver and onDrop
     >
       {/* Drag handle on the left, only visible on hover */}
       <span
         className="tiptap-drag-handle mr-2"
         contentEditable={false}
-        draggable="true"
+        draggable={true}
         data-drag-handle
         style={{ display: "flex", alignItems: "center", height: "100%" }}
-        onDragStart={handleDragStart}
+        onDragStart={handleDragStart} // Only if you want a custom drag image
       >
         <span className="drag-handle-visibility">
           <button

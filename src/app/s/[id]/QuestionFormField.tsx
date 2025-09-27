@@ -48,13 +48,7 @@ export default function QuestionFormField({
         <input
           type="text"
           className="block w-full border border-gray-300 rounded px-2 py-1 text-base"
-          value={
-            typeof value === "string" && value !== ""
-              ? value
-              : typeof defaultAnswer === "string"
-              ? defaultAnswer
-              : ""
-          }
+          value={typeof value === "string" ? value : ""}
           placeholder={placeholder}
           onChange={(e) => onChange(id, e.target.value)}
           required={required}
@@ -81,9 +75,7 @@ export default function QuestionFormField({
                 type="radio"
                 name={id}
                 value={option}
-                checked={
-                  value === option || (value === "" && defaultAnswer === option)
-                }
+                checked={value === option}
                 onChange={() => onChange(id, option)}
                 style={{ marginRight: 8 }}
                 required={required}
@@ -95,11 +87,7 @@ export default function QuestionFormField({
       ) : type === "checkbox" && options && options.length > 0 ? (
         <div style={{ marginTop: 4 }}>
           {options.map((option, idx) => {
-            const checked =
-              (Array.isArray(value) && value.includes(option)) ||
-              (Array.isArray(defaultAnswer) &&
-                value.length === 0 &&
-                defaultAnswer.includes(option));
+            const checked = Array.isArray(value) && value.includes(option);
             return (
               <label
                 key={idx}

@@ -34,6 +34,7 @@ export const QuestionNode = Node.create<QuestionNodeOptions>({
     addOptions() {
         return {
             HTMLAttributes: {},
+            draggable: true, // <-- THIS IS REQUIRED
         };
     },
 
