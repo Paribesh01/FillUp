@@ -6,11 +6,9 @@ export default function MultipleChoiceQuestionNode({
   node,
   updateAttributes,
   selected,
-}: {
-  node: any;
-  updateAttributes: (attrs: any) => void;
-  selected: boolean;
-}) {
+  editor,
+  getPos,
+}: any) {
   const attrs = node.attrs;
 
   // Ensure options array exists in node attributes
@@ -56,7 +54,13 @@ export default function MultipleChoiceQuestionNode({
   };
 
   return (
-    <QuestionNodeWrapper onOpenSettings={openSettings}>
+    <QuestionNodeWrapper
+      onOpenSettings={openSettings}
+      node={node}
+      updateAttributes={updateAttributes}
+      editor={editor}
+      getPos={getPos}
+    >
       <div style={{ width: "100%" }}>
         <input
           value={attrs.label || ""}

@@ -6,6 +6,8 @@ export default function CheckboxQuestionNode({
   node,
   updateAttributes,
   selected,
+  editor,
+  getPos,
 }: any) {
   const attrs = node.attrs;
   const options: string[] = attrs.options || [];
@@ -60,11 +62,17 @@ export default function CheckboxQuestionNode({
   };
 
   return (
-    <QuestionNodeWrapper onOpenSettings={openSettings}>
+    <QuestionNodeWrapper
+      onOpenSettings={openSettings}
+      node={node}
+      updateAttributes={updateAttributes}
+      editor={editor}
+      getPos={getPos}
+    >
       <div style={{ width: "100%" }}>
         <input
           value={attrs.label || ""}
-          onChange={(e) => updateAttributes({ label: e.target.value })}
+          onChange={handleLabelChange}
           placeholder="Question label"
           style={{ width: "100%", marginBottom: 8, fontWeight: 600 }}
           className="block w-full text-lg font-medium mb-2 bg-transparent border-none focus:ring-0 p-0 no-border"

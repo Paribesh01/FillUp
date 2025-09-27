@@ -8,6 +8,8 @@ export default function QuestionNodeComponent({
   node,
   updateAttributes,
   selected,
+  editor,
+  getPos,
 }: NodeViewProps) {
   const { label, type, placeholder } = node.attrs;
 
@@ -20,6 +22,8 @@ export default function QuestionNodeComponent({
       node={node}
       updateAttributes={updateAttributes}
       onOpenSettings={openSettings}
+      editor={editor}
+      getPos={getPos}
     >
       <input
         type="text"

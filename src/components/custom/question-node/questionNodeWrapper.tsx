@@ -1,18 +1,22 @@
 import React, { useRef, useState } from "react";
 import { DragHandleButton } from "../DragHandleButton";
 import { createPortal } from "react-dom";
+import { NodeViewWrapper, NodeViewContent } from "@tiptap/react";
 
 export function QuestionNodeWrapper({
   children,
   onOpenSettings,
   node,
   updateAttributes,
-}: // Removed onDragOver, onDrop from props
-{
+  editor,
+  getPos,
+}: {
   children: React.ReactNode;
   onOpenSettings: () => void;
   node?: any;
   updateAttributes?: (attrs: any) => void;
+  editor: any;
+  getPos: () => number | undefined;
 }) {
   const nodeRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -23,13 +27,117 @@ export function QuestionNodeWrapper({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const settingsRef = useRef<HTMLDivElement>(null);
 
-  // Optional: Only for custom drag image
+  // Custom drag start: store the node's position
   const handleDragStart = (event: React.DragEvent) => {
     if (nodeRef.current) {
       event.dataTransfer.setDragImage(nodeRef.current, 30, 10);
     }
-    // Do NOT set custom data unless you handle drop yourself
+    if (typeof getPos === "function") {
+      const pos = getPos();
+      if (typeof pos === "number" && !isNaN(pos)) {
+        event.dataTransfer.setData(
+          "application/x-question-node-pos",
+          pos.toString()
+        );
+      } else {
+        // Prevent drag if pos is invalid
+        console.warn(
+          "Drag start: getPos() returned invalid value",
+          pos,
+          node?.attrs?.label,
+          node?.attrs?.id
+        );
+        event.preventDefault();
+        return;
+      }
+    }
+    console.log(
+      "Drag started",
+      getPos?.(),
+      node?.attrs?.label,
+      node?.attrs?.id
+    );
   };
+
+  // Allow drop
+  const handleDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+    const pos = getPos?.();
+    console.log("Drag over", pos, node?.attrs?.label, node?.attrs?.id);
+  };
+
+  // Debug: log when drag enters a node
+  const handleDragEnter = (event: React.DragEvent) => {
+    const pos = getPos?.();
+    console.log("Drag enter", pos, node?.attrs?.label, node?.attrs?.id);
+  };
+
+  // On drop, move the node in the Tiptap doc
+  const handleDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    const fromPos = parseInt(
+      event.dataTransfer.getData("application/x-question-node-pos"),
+      10
+    );
+    let toPos = getPos?.();
+    console.log("Drop event", {
+      fromPos,
+      toPos,
+      node,
+      editor,
+      label: node?.attrs?.label,
+      id: node?.attrs?.id,
+    });
+    if (
+      typeof fromPos === "number" &&
+      typeof toPos === "number" &&
+      fromPos !== toPos &&
+      editor
+    ) {
+      // If moving down, adjust toPos because the document shrinks after deletion
+      if (fromPos < toPos) {
+        toPos = toPos - node.nodeSize;
+      }
+      console.log(
+        "Moving node",
+        node,
+        "from",
+        fromPos,
+        "to",
+        toPos,
+        "nodeSize",
+        node.nodeSize
+      );
+      console.log("Before move", JSON.stringify(editor.getJSON()));
+      // Try just deleting
+      editor
+        .chain()
+        .focus()
+        .deleteRange({ from: fromPos, to: fromPos + node.nodeSize })
+        .run();
+      console.log("After delete", JSON.stringify(editor.getJSON()));
+      // Try just inserting
+      editor.chain().focus().insertContentAt(toPos, node.toJSON()).run();
+      console.log("After insert", JSON.stringify(editor.getJSON()));
+      // Now try the full move (delete + insert in one chain)
+      // editor
+      //   .chain()
+      //   .focus()
+      //   .deleteRange({ from: fromPos, to: fromPos + node.nodeSize })
+      //   .insertContentAt(toPos, node.toJSON())
+      //   .run();
+      // console.log("After move", JSON.stringify(editor.getJSON()));
+    }
+  };
+
+  // Debug: global drop event
+  React.useEffect(() => {
+    const globalDrop = (e: DragEvent) => {
+      console.log("GLOBAL DROP", e);
+    };
+    window.addEventListener("drop", globalDrop);
+    return () => window.removeEventListener("drop", globalDrop);
+  }, []);
 
   // Toggle menu and set position next to drag handle
   const handleButtonClick = () => {
@@ -67,23 +175,24 @@ export function QuestionNodeWrapper({
   }, [open]);
 
   return (
-    <div
+    <NodeViewWrapper
       className="question-node flex items-start group relative"
       ref={nodeRef}
-      // Removed onDragOver and onDrop
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDropCapture={handleDrop}
     >
       {/* Drag handle on the left, only visible on hover */}
       <span
         className="tiptap-drag-handle mr-2"
         contentEditable={false}
-        draggable={true}
-        data-drag-handle
         style={{ display: "flex", alignItems: "center", height: "100%" }}
-        onDragStart={handleDragStart} // Only if you want a custom drag image
       >
         <span className="drag-handle-visibility">
           <button
             ref={buttonRef}
+            draggable
+            onDragStart={handleDragStart}
             onClick={handleButtonClick}
             style={{
               background: "none",
@@ -143,6 +252,6 @@ export function QuestionNodeWrapper({
           </label>
         </div>
       )}
-    </div>
+    </NodeViewWrapper>
   );
 }

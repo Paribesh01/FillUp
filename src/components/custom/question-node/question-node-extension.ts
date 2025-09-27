@@ -1,4 +1,5 @@
 import { Node, mergeAttributes } from '@tiptap/core';
+import { Plugin } from 'prosemirror-state';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface QuestionNodeOptions {
@@ -28,6 +29,7 @@ export interface QuestionNodeAttrs {
 export const QuestionNode = Node.create<QuestionNodeOptions>({
     name: 'questionNode',
     group: 'block',
+    content: 'inline*', // <-- This line enables drag-and-drop for block nodes
     selectable: true,
     atom: false,
 
@@ -106,8 +108,30 @@ export const QuestionNode = Node.create<QuestionNodeOptions>({
             mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
                 'data-type': 'question-node',
                 style: 'padding: 8px; border: 1px solid #eee; border-radius: 6px; margin: 8px 0;',
+                draggable: 'false', // Disable native drag
             }),
             HTMLAttributes.label || 'Untitled question',
+        ];
+    },
+
+    addProseMirrorPlugins() {
+        return [
+            new Plugin({
+                props: {
+                    handleDOMEvents: {
+                        drop: (view, event) => {
+                            // Prevent ProseMirror's default drop handling
+                            event.stopPropagation();
+                            return false;
+                        },
+                        dragstart: (view, event) => {
+                            // Prevent ProseMirror's default drag handling
+                            event.stopPropagation();
+                            return false;
+                        },
+                    },
+                },
+            }),
         ];
     },
 

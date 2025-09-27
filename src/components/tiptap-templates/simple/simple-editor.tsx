@@ -14,6 +14,7 @@ import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
 import { Selection } from "@tiptap/extensions";
 import { Placeholder } from "@tiptap/extensions";
+import { Node as ProseMirrorNode } from "prosemirror-model";
 
 // --- Tiptap Node ---
 import { ImageUploadNode } from "@/components/tiptap-node/image-upload-node/image-upload-node-extension";
@@ -28,6 +29,7 @@ import "@/components/tiptap-node/paragraph-node/paragraph-node.scss";
 
 // --- Hooks ---
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useRef, useEffect, useCallback, useState } from "react";
 
 // --- Components ---
 import { SlashMenu } from "./SlashMenu";
@@ -45,7 +47,6 @@ import { updateFormTitle } from "@/app/actions/form";
 import { TitleInput } from "@/components/ui/title-input";
 import { getFormById } from "@/app/actions/form";
 import MultipleChoiceQuestionNode from "@/components/custom/question-node/MultipleChoiceQuestionNode";
-import { useState, useEffect, useCallback } from "react";
 import { togglePublish } from "@/app/actions/form";
 import CheckboxQuestionNode from "@/components/custom/question-node/CheckboxQuestionNode";
 import { toast } from "sonner";
@@ -65,6 +66,7 @@ export function SimpleEditor({
   const [published, setPublished] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const editorRef = useRef<HTMLDivElement>(null);
 
   // Fetch the title and published state on mount
   useEffect(() => {
@@ -143,6 +145,105 @@ export function SimpleEditor({
     ],
   });
 
+  // Robust drag-and-drop: handle drop at the ProseMirror root
+  useEffect(() => {
+    if (!editorRef.current || !editor) return;
+    const handleDrop = (event: Event) => {
+      const dragEvent = event as DragEvent;
+      dragEvent.preventDefault();
+      const fromPosRaw = dragEvent.dataTransfer?.getData(
+        "application/x-question-node-pos"
+      );
+      if (!fromPosRaw) {
+        console.warn("Drop event: No fromPos drag data found.");
+        return;
+      }
+      const fromPos = parseInt(fromPosRaw, 10);
+      const coords = { left: dragEvent.clientX, top: dragEvent.clientY };
+      const result = editor.view.posAtCoords(coords);
+      if (!result) return;
+      let toPos = result.pos;
+
+      // Gather all top-level node positions for debugging
+      const maxPos = editor.state.doc.nodeSize - 2; // valid positions are 0..maxPos
+      let nodePositions: any[] = [];
+      editor.state.doc.forEach((child, offset) => {
+        nodePositions.push({
+          label: child.attrs?.label,
+          type: child.type.name,
+          offset,
+          nodeSize: child.nodeSize,
+          id: child.attrs?.id,
+        });
+      });
+      console.log("Drop event:", {
+        fromPos,
+        toPos,
+        maxPos,
+        docSize: editor.state.doc.content.size,
+        nodePositions,
+      });
+      if (
+        typeof fromPos !== "number" ||
+        isNaN(fromPos) ||
+        fromPos < 0 ||
+        fromPos > maxPos ||
+        !nodePositions.some((pos) => pos.offset === fromPos)
+      ) {
+        console.warn(
+          "fromPos out of bounds",
+          fromPos,
+          "maxPos:",
+          maxPos,
+          "docSize:",
+          editor.state.doc.content.size,
+          "nodePositions:",
+          nodePositions
+        );
+        return;
+      }
+
+      let node: ProseMirrorNode | null = null;
+      let nodeStart = 0;
+      editor.state.doc.forEach((child: ProseMirrorNode, offset: number) => {
+        if (offset <= fromPos && fromPos < offset + child.nodeSize) {
+          node = child;
+          nodeStart = offset;
+        }
+      });
+      if (!node) {
+        console.warn("No node found at fromPos", fromPos);
+        return;
+      }
+
+      // Adjust toPos if moving down, but only if result is valid
+      if (nodeStart < toPos && toPos - node.nodeSize >= 0) {
+        toPos = toPos - node.nodeSize;
+      }
+
+      // Ensure positions are valid and not out of bounds
+      if (
+        typeof nodeStart === "number" &&
+        typeof toPos === "number" &&
+        nodeStart !== toPos &&
+        toPos >= 0 &&
+        nodeStart >= 0 &&
+        toPos <= editor.state.doc.content.size &&
+        nodeStart + node.nodeSize <= editor.state.doc.content.size
+      ) {
+        editor
+          .chain()
+          .focus()
+          .deleteRange({ from: nodeStart, to: nodeStart + node.nodeSize })
+          .insertContentAt(toPos, node.toJSON())
+          .run();
+      }
+    };
+    const el = editorRef.current.querySelector(".ProseMirror");
+    el?.addEventListener("drop", handleDrop);
+    return () => el?.removeEventListener("drop", handleDrop);
+  }, [editor]);
+
   // Add this save handler function inside your component
   const handleSave = useCallback(async () => {
     if (!editor) return;
@@ -196,7 +297,7 @@ export function SimpleEditor({
   const currentContent = editor?.getJSON ? editor.getJSON() : initialContent;
 
   return (
-    <>
+    <div ref={editorRef}>
       <div className="w-full flex justify-center mt-8 mb-4">
         <div className="max-w-xl w-full flex items-center justify-end gap-3">
           <button
@@ -308,7 +409,7 @@ export function SimpleEditor({
       {settingsOpen && (
         <YourSettingsDialog onClose={() => setSettingsOpen(false)} />
       )}
-    </>
+    </div>
   );
 }
 
